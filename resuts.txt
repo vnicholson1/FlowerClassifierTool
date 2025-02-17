@@ -1,0 +1,5 @@
+Nearest Neighbour 16x16 tiny images
+
+1 - 0.32
+5 - 0.3226
+10 - 0.334
