@@ -59,11 +59,14 @@ def main():
             image = Image.open(path)
             image_array = to_tiny_image(image)
             testing_data[class_name].append(image_array)
+
+    print("Extracted features for the testing set")
     for class_name, list_of_image_features in testing_data.items():
         for image_features in list_of_image_features:
             predicted, _ = knn.classify(image_features)
             confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
 
+    print("Calculated accuracy and confusion matrix")
     print(confusion_matrix)
 
 if __name__ == '__main__':
