@@ -39,6 +39,21 @@ def to_tiny_image_with_edges(pillow_image, image_size):
     return np.array(smaller_image).flatten()
 
 
+def combo(pillow_image, args):
+    tiny_image_size, edge_size = args
+
+    tiny_image = to_tiny_image(pillow_image, tiny_image_size)
+    edge_image = to_tiny_image_with_edges(pillow_image, edge_size)
+    return np.concatenate((tiny_image, edge_image))
+
+def to_colour_histogram(pillow_image, num_bins):
+    red, green, blue = pillow_image.split()
+    red_hist, _ = np.histogram(red, bins=num_bins)
+    green_hist, _ = np.histogram(green, bins=num_bins)
+    blue_hist, _ = np.histogram(blue, bins=num_bins)
+    return np.concatenate((red_hist, green_hist, blue_hist))
+
+
 def pretty_confusion_matrix(confusion_matrix, class_names, total):
 
     num_correct = 0
@@ -58,56 +73,68 @@ def pretty_confusion_matrix(confusion_matrix, class_names, total):
     return text
 
 
+def evaluate(function, args, ks):
+    for k in ks:
+        for size in args:
+            # Create feature set
+            class_name_and_paths = get_image_paths(use_train=True)
+            training_data = {}
+            for class_name, paths in class_name_and_paths.items():
+                training_data[class_name] = []
+                for path in paths:
+                    image = Image.open(path)
+                    image_array = function(image, size)
+                    training_data[class_name].append(image_array)
+
+            print('Created image feature set')
+
+            # Create the classifier
+            knn = NearestNeighbourClassifier(training_data, k=k)
+
+            print("Test the classifier")
+            class_name_and_paths = get_image_paths(use_train=False)
+            class_names = [x.lower() for x in list(class_name_and_paths.keys())]
+            # test it
+            confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
+            testing_data = {}
+            total_data = 0
+            for class_name, paths in class_name_and_paths.items():
+                testing_data[class_name] = []
+                for path in paths:
+                    image = Image.open(path)
+                    image_array = function(image, size)
+                    testing_data[class_name].append(image_array)
+                    total_data += 1
+
+            print("Extracted features for the testing set")
+            for class_name, list_of_image_features in testing_data.items():
+                print(f"Predicting class name {class_name}")
+                for image_features in list_of_image_features:
+                    predicted, _ = knn.classify(image_features)
+                    confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
+
+            results = pretty_confusion_matrix(confusion_matrix, class_names, total_data)
+            print(results)
+
+            if type(size) == tuple:
+                with open(f'results_{function.__name__}_{size[0]}_{size[1]}_k_{knn.k}.txt', 'w') as f:
+                    f.write(results)
+            else:
+                with open(f'results_{function.__name__}_{size}_k_{knn.k}.txt', 'w') as f:
+                    f.write(results)
+
+
 def run_evaluation(tiny_image_sizes, image_type):
 
     if image_type == "tiny_images":
         function = to_tiny_image
-    else:
+    elif image_type == 'tiny_images_with_edges':
         function = to_tiny_image_with_edges
+    else:
+        function = to_colour_histogram
 
-    for size in tiny_image_sizes:
-        # Create feature set
-        class_name_and_paths = get_image_paths(use_train=True)
-        training_data = {}
-        for class_name, paths in class_name_and_paths.items():
-            training_data[class_name] = []
-            for path in paths:
-                image = Image.open(path)
-                image_array = function(image, size)
-                training_data[class_name].append(image_array)
-
-        print('Created image feature set')
-
-        # Create the classifier
-        knn = NearestNeighbourClassifier(training_data)
-
-        print("Test the classifier")
-        class_name_and_paths = get_image_paths(use_train=False)
-        class_names = [x.lower() for x in list(class_name_and_paths.keys())]
-        # test it
-        confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
-        testing_data = {}
-        total_data = 0
-        for class_name, paths in class_name_and_paths.items():
-            testing_data[class_name] = []
-            for path in paths:
-                image = Image.open(path)
-                image_array = function(image, size)
-                testing_data[class_name].append(image_array)
-                total_data += 1
-
-        print("Extracted features for the testing set")
-        for class_name, list_of_image_features in testing_data.items():
-            print(f"Predicting class name {class_name}")
-            for image_features in list_of_image_features:
-                predicted, _ = knn.classify(image_features)
-                confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
-
-        results = pretty_confusion_matrix(confusion_matrix, class_names, total_data)
-        print(results)
-        with open(f'results_{image_type}_{size[0]}_{size[1]}_k_{knn.k}.txt', 'w') as f:
-            f.write(results)
+    evaluate(function, tiny_image_sizes)
+    
 
 if __name__ == '__main__':
-    # run_evaluation([(4,4), (8,8), (16, 16), (32, 32)], image_type="tiny_images")
-    run_evaluation([(32, 32), (64, 64), (128, 128)], image_type="tiny_images_with_edges")
+    evaluate(to_tiny_image, [(4,4), (8,8)], [1,2,3,4,5])
