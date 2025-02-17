@@ -62,6 +62,7 @@ def main():
 
     print("Extracted features for the testing set")
     for class_name, list_of_image_features in testing_data.items():
+        print(f"Predicting class name {class_name}")
         for image_features in list_of_image_features:
             predicted, _ = knn.classify(image_features)
             confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
