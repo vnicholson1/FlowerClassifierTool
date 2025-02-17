@@ -31,12 +31,12 @@ def to_tiny_image(pillow_image, image_size):
 
 
 def to_tiny_image_with_edges(pillow_image, image_size):
-    smaller_image = pillow_image.resize(image_size, Image.Resampling.LANCZOS)
-    greyscale = smaller_image.convert('L')
+    greyscale = pillow_image.convert('L')
     edge_image = greyscale.filter(ImageFilter.FIND_EDGES)
-    edge_image.show()
-    pillow_image.show()
-    return np.array(edge_image).flatten()
+    smaller_image = edge_image.resize(image_size, Image.Resampling.LANCZOS)
+    # edge_image.show()
+    # pillow_image.show()
+    return np.array(smaller_image).flatten()
 
 
 def pretty_confusion_matrix(confusion_matrix, class_names, total):
@@ -110,4 +110,4 @@ def run_evaluation(tiny_image_sizes, image_type):
 
 if __name__ == '__main__':
     # run_evaluation([(4,4), (8,8), (16, 16), (32, 32)], image_type="tiny_images")
-    run_evaluation([(4,4), (8,8), (16, 16), (32, 32)], image_type="tiny_images_with_edges")
+    run_evaluation([(32, 32), (64, 64), (128, 128)], image_type="tiny_images_with_edges")
