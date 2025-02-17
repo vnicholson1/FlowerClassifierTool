@@ -45,10 +45,26 @@ def main():
     print('Created image feature set')
 
     # Create the classifier
-    knn = NearestNeighbourClassifier(training_data)
+    knn = NearestNeighbourClassifier(training_data, k=20)
 
-    
+    print("Test the classifier")
+    class_name_and_paths = get_image_paths(use_train=False)
+    class_names = [x.lower() for x in list(class_name_and_paths.keys())]
+    # test it
+    confusion_matrix = np.zeros((len(class_names), len(class_names)))
+    testing_data = {}
+    for class_name, paths in class_name_and_paths.items():
+        testing_data[class_name] = []
+        for path in paths:
+            image = Image.open(path)
+            image_array = to_tiny_image(image)
+            testing_data[class_name].append(image_array)
+    for class_name, list_of_image_features in testing_data.items():
+        for image_features in list_of_image_features:
+            predicted, _ = knn.classify(image_features)
+            confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
 
+    print(confusion_matrix)
 
 if __name__ == '__main__':
     main()

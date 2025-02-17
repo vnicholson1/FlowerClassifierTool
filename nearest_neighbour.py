@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, List
+from typing import Optional, Tuple
 
 
 class NearestNeighbourClassifier:
@@ -8,7 +8,6 @@ class NearestNeighbourClassifier:
     training_data: dict
 
     def __init__(self, training_data: dict, k: Optional[int] = None):
-        self.k = k
         # normalise the data before training
         normalised_data = {}
         for class_name, list_of_image_features in training_data.items(): 
@@ -33,13 +32,12 @@ class NearestNeighbourClassifier:
             best_k = -1
             best_correct = -1
             num_data = sum([len(x) for x in [y for y in validation_set.values()]])
-            for k in range(5, min(50, num_data), 5):
+            for k in range(5, min(30, num_data), 5):
                 self.k = k 
                 num_correct = 0
                 for class_name, list_of_image_features in validation_set.items():
-                    print(f'Currently predicting {class_name} images')
                     for image_features in list_of_image_features:
-                        predicted = self.classify(image_features)
+                        predicted, _ = self.classify(image_features)
                         if predicted == class_name:
                             num_correct += 1
                 if num_correct > best_correct:
@@ -50,10 +48,12 @@ class NearestNeighbourClassifier:
 
             self.k = best_k
             print(f"k-NN tuned with k-value {self.k} and training accuracy {best_correct/num_data}")
-
+        else:
+            self.k = k
+        
         self.training_data = normalised_data
 
-    def classify(self, input) -> str:
+    def classify(self, input) -> Tuple[str, float]:
         normalised_input = (input-np.min(input))/(np.max(input)-np.min(input))
         best_distances = []
         best_classes = []
@@ -84,4 +84,14 @@ class NearestNeighbourClassifier:
                 predictions_count[class_name] = 0
             predictions_count[class_name] += 1
 
-        return max(predictions_count, key=predictions_count.get)
+        prediction = max(predictions_count, key=predictions_count.get)
+        confidence = predictions_count[prediction] / self.k
+
+        return max(predictions_count, key=predictions_count.get), confidence
+
+    def export_to_json(self) -> dict:
+        pass
+
+    @classmethod
+    def import_from_json(cls, json_in: dict):
+        pass
