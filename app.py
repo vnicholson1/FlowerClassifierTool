@@ -41,7 +41,8 @@ def classify():
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
         top_x_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
-    return render_template('classify.html', predictions=top_x_with_images)
+    sorted_by_second = sorted(top_x_with_images, key=lambda tup: tup[1], reverse=True)
+    return render_template('classify.html', predictions=sorted_by_second)
 
 
 if __name__ == '__main__':
