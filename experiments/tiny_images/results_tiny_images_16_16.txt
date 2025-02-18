@@ -20,3 +20,5 @@ yellow_wildflower	0.0     	1.0      	0.0   	4.0     	0.0  	0.0      	1.0     	0.
 Accuracy = 43.54066985645933%
 
 Balanced Accuracy = 44.47231403070347%
+
+ Best K = 5

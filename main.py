@@ -52,11 +52,11 @@ def evaluate(function, *params):
     
 
 if __name__ == '__main__':
-    # for image_size in [(2,2), (4,4), (8,8), (16,16)]:
-    #     results = evaluate(to_tiny_image, image_size)
-    #     print(results)
-    #     with open(f'results_tiny_images_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
-    #         f.write(results)
+    for image_size in [(2,2), (4,4), (8,8), (16,16)]:
+        results = evaluate(to_tiny_image, image_size)
+        print(results)
+        with open(f'results_tiny_images_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
+            f.write(results)
 
     # for number_of_bins in [5, 10, 20, 30, 40, 50]:
     #     results = evaluate(to_colour_histogram, number_of_bins)
@@ -64,8 +64,8 @@ if __name__ == '__main__':
     #     with open(f'results_color_hist_{number_of_bins}.txt', 'w') as f:
     #         f.write(results)
 
-    for number_of_bins in [5, 10, 20, 30, 40, 50]:
-        results = evaluate(to_tiny_image_then_colour_histogram, number_of_bins)
-        print(results)
-        with open(f'results_tiny_image_color_hist_{number_of_bins}.txt', 'w') as f:
-            f.write(results)
+    # for number_of_bins in [5, 10, 20, 30, 40, 50]:
+    #     results = evaluate(to_tiny_image_then_colour_histogram, number_of_bins)
+    #     print(results)
+    #     with open(f'results_tiny_image_color_hist_{number_of_bins}.txt', 'w') as f:
+    #         f.write(results)

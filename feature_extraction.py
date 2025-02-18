@@ -27,7 +27,7 @@ def to_colour_histogram(pillow_image, num_bins):
 
 
 def to_tiny_image_then_colour_histogram(pillow_image, num_bins):
-    pillow_image = to_tiny_image(pillow_image, (16, 16))
+    pillow_image = pillow_image.resize((16,16), Image.Resampling.LANCZOS)
     red, green, blue = pillow_image.split()
     red_hist, _ = np.histogram(red, bins=num_bins)
     green_hist, _ = np.histogram(green, bins=num_bins)
