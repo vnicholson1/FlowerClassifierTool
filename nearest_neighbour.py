@@ -102,13 +102,13 @@ class NearestNeighbourClassifier:
 
         return max(predictions_count, key=predictions_count.get), confidence
 
-    def classify_top_three(self, input):
+    def classify_top_x(self, input, x):
         predictions_count = self._do_classification(input)
         sorted_predictions = {k: v for k, v in sorted(predictions_count.items(), key=lambda item: item[1])}
         prediction_confidences = []
         i = 0
         for prediction, count in sorted_predictions.items():
-            if i == 3:
+            if i == x:
                 break
             prediction_confidences.append((prediction, count/self.k))
             i += 1

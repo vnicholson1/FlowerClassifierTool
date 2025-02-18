@@ -19,7 +19,7 @@ for class_name, paths in class_name_and_paths.items():
         image_array = to_edge_and_colour(image, (8,8), (16,16))
         training_data[class_name].append(image_array)
 
-knn = NearestNeighbourClassifier(training_data, k=1)
+knn = NearestNeighbourClassifier(training_data, k=5)
 
 
 @app.route('/', methods=['GET'])
@@ -32,15 +32,15 @@ def classify():
     file = request.files['upload']
     img = Image.open(file)
     feature_array = to_edge_and_colour(img, (8,8), (16,16))
-    top_three = knn.classify_top_three(feature_array)
+    top_three = knn.classify_top_x(feature_array, 5)
 
-    top_three_with_images = []
+    top_x_with_images = []
     for top in top_three:
         image_path = class_name_and_paths[top[0]][0]
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
-        top_three_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
-    return render_template('classify.html', predictions=top_three_with_images)
+        top_x_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
+    return render_template('classify.html', predictions=top_x_with_images)
 
 
 if __name__ == '__main__':
