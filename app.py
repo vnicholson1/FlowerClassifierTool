@@ -25,7 +25,10 @@ knn = NearestNeighbourClassifier(training_data, k=k)
 
 @app.route('/', methods=['GET'])
 def main():
-    return render_template('index.html')
+    class_counts = {
+        key: len(value) for key, value in class_name_and_paths.items()
+    }
+    return render_template('index.html', class_counts=class_counts)
 
 
 @app.route('/classify', methods=['POST'])

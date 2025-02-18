@@ -2,6 +2,13 @@
 <html>
 
 <head>
+    <style>
+        table,
+        th,
+        td {
+            border: 0.5px solid black;
+        }
+    </style>
 </head>
 
 <body>
@@ -13,6 +20,19 @@
     </form>
 
     <br>
+
+    <table>
+        <tr>
+            <th><b>Flower Type</b></th>
+            <th><b>Count</b></th>
+        </tr>
+        {% for class_name, count in class_counts.items() %}
+        <tr>
+            <td>{{ class_name }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
 
 </body>
