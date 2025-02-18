@@ -1,0 +1,12 @@
+[Unit]
+Description=service to run flower classifier server as a background service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/FlowerClassifierTool/server
+ExecStart=/home/pi/FlowerClassifierTool/flower-classifier-start.sh
+
+[Install]
+WantedBy=multi-user.target

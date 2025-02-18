@@ -61,7 +61,7 @@ class NearestNeighbourClassifier:
         
         self.training_data = normalised_data
 
-    def classify(self, input) -> Tuple[str, float]:
+    def _do_classification(self, input):
         normalised_input = (input-np.min(input))/(np.max(input)-np.min(input))
         best_distances = []
         best_classes = []
@@ -92,7 +92,26 @@ class NearestNeighbourClassifier:
                 predictions_count[class_name] = 0
             predictions_count[class_name] += 1
 
+        return predictions_count
+
+    def classify(self, input) -> Tuple[str, float]:
+        predictions_count = self._do_classification(input)
+
         prediction = max(predictions_count, key=predictions_count.get)
         confidence = predictions_count[prediction] / self.k
 
         return max(predictions_count, key=predictions_count.get), confidence
+
+    def classify_top_three(self, input):
+        predictions_count = self._do_classification(input)
+        sorted_predictions = {k: v for k, v in sorted(predictions_count.items(), key=lambda item: item[1])}
+        prediction_confidences = []
+        i = 0
+        for prediction, count in sorted_predictions.items():
+            if i == 3:
+                break
+            prediction_confidences.append((prediction, count/self.k))
+            i += 1
+        return prediction_confidences
+    
+    
