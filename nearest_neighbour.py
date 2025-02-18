@@ -1,11 +1,14 @@
 import numpy as np
 from typing import Optional, Tuple
 
+from utils import calculate_balanced_accuracy
+
 
 class NearestNeighbourClassifier:
 
     k: int
     training_data: dict
+    training_confusion_matrix: list[list]
 
     def __init__(self, training_data: dict, k: Optional[int] = None):
         # normalise the data before training
@@ -21,7 +24,8 @@ class NearestNeighbourClassifier:
         if k is None:
             training_set = {}
             validation_set = {}
-            for class_name in normalised_data.keys():
+            class_names = list(normalised_data.keys())
+            for class_name in class_names:
                 data = normalised_data[class_name]
                 training_set[class_name] = data[:len(data)//2]
                 validation_set[class_name] = data[len(data)//2:]
@@ -30,24 +34,28 @@ class NearestNeighbourClassifier:
 
             self.training_data = training_set
             best_k = -1
-            best_correct = -1
+            best_balanced_accuracy = -1
+            best_confusion_matrix = None
             num_data = sum([len(x) for x in [y for y in validation_set.values()]])
             for k in range(5, min(30, num_data), 5):
                 self.k = k 
-                num_correct = 0
+                confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
                 for class_name, list_of_image_features in validation_set.items():
                     for image_features in list_of_image_features:
                         predicted, _ = self.classify(image_features)
-                        if predicted == class_name:
-                            num_correct += 1
-                if num_correct > best_correct:
-                    best_correct = num_correct
-                    best_k = k
+                        confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
 
-                print(f'k with value {self.k} returned accuracy of {num_correct/num_data}')
+                current_balanced_accuracy = calculate_balanced_accuracy(confusion_matrix)
+                if best_balanced_accuracy < current_balanced_accuracy:
+                    best_balanced_accuracy = current_balanced_accuracy
+                    best_k = k
+                    best_confusion_matrix = confusion_matrix
+
+                print(f'k with value {self.k} returned accuracy of {current_balanced_accuracy}')
 
             self.k = best_k
-            print(f"k-NN tuned with k-value {self.k} and training accuracy {best_correct/num_data}")
+            self.training_confusion_matrix = best_confusion_matrix
+            print(f"k-NN tuned with k-value {self.k} and training accuracy {best_balanced_accuracy}")
         else:
             self.k = k
         
@@ -88,10 +96,3 @@ class NearestNeighbourClassifier:
         confidence = predictions_count[prediction] / self.k
 
         return max(predictions_count, key=predictions_count.get), confidence
-
-    def export_to_json(self) -> dict:
-        pass
-
-    @classmethod
-    def import_from_json(cls, json_in: dict):
-        pass

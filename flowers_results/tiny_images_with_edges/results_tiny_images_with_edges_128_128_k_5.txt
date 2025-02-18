@@ -1,8 +1,0 @@
-         	iris	orchid	rose	sunflower	tulip
-iris     	7.0 	4.0   	2.0 	5.0      	3.0  
-orchid   	0.0 	2.0   	1.0 	0.0      	0.0  
-rose     	3.0 	3.0   	7.0 	4.0      	6.0  
-sunflower	0.0 	0.0   	0.0 	1.0      	1.0  
-tulip    	0.0 	0.0   	0.0 	0.0      	0.0  
-
-Accuracy = 34.69387755102041%
