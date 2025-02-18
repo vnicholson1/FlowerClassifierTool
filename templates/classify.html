@@ -14,9 +14,9 @@
     <br>
 
 
-    {% for prediction in predictions%}
+    {% for prediction in predictions %}
 
-    <img src="/static/{{ prediction[0] }}.jpg"/>
+    <img src="{{ prediction[2] }}" width="200" height="300"/>
 
     <p> Prediction: {{ prediction[0] }} </p>
     <p> Confidence: {{ prediction[1] }} </p>

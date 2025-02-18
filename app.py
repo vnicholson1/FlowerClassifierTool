@@ -4,6 +4,8 @@ from feature_extraction import to_edge_and_colour
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths
 from PIL import Image
+import base64
+
 
 app = Flask(__name__)
 
@@ -31,7 +33,14 @@ def classify():
     img = Image.open(file)
     feature_array = to_edge_and_colour(img, (8,8), (16,16))
     top_three = knn.classify_top_three(feature_array)
-    return render_template('classify.html', predictions=top_three)
+
+    top_three_with_images = []
+    for top in top_three:
+        image_path = class_name_and_paths[top[0]][0]
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read())
+        top_three_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
+    return render_template('classify.html', predictions=top_three_with_images)
 
 
 if __name__ == '__main__':
