@@ -65,7 +65,7 @@ if __name__ == '__main__':
     #     with open(f'results_tiny_images_with_edges_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
     #         f.write(results)
 
-    for tiny_image_size in [(16,16)]:
+    for tiny_image_size in [(8,8)]:
         for edge_image_size in [(16,16)]:
             results = evaluate(to_edge_and_colour, tiny_image_size, edge_image_size)
             print(results)
