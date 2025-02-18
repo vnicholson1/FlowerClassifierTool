@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 from utils import calculate_balanced_accuracy
 
@@ -8,7 +8,7 @@ class NearestNeighbourClassifier:
 
     k: int
     training_data: dict
-    training_confusion_matrix: list[list]
+    training_confusion_matrix: List[List]
 
     def __init__(self, training_data: dict, k: Optional[int] = None):
         # normalise the data before training
