@@ -1,9 +1,0 @@
-Nearest Neighbour 16x16 tiny images (training accuracy)
-
-1 - 0.32
-5 - 0.3226
-10 - 0.334
-k with value 15 returned accuracy of 0.348
-k with value 20 returned accuracy of 0.36933333333333335
-k with value 25 returned accuracy of 0.356
-k with value 30 returned accuracy of 0.3506666666666667
