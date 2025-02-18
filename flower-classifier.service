@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/FlowerClassifierTool/server
+WorkingDirectory=/home/pi/FlowerClassifierTool
 ExecStart=/home/pi/FlowerClassifierTool/flower-classifier-start.sh
 
 [Install]
