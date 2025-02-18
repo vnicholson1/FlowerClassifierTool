@@ -1,6 +1,6 @@
 from PIL import Image
 
-from feature_extraction import to_colour_histogram, to_tiny_image
+from feature_extraction import to_colour_histogram, to_tiny_image, to_tiny_image_then_colour_histogram
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 
@@ -21,6 +21,7 @@ def evaluate(function, *params):
     # Create the classifier
     knn = NearestNeighbourClassifier(training_data)
     results = pretty_confusion_matrix(knn.training_confusion_matrix, list(class_name_and_paths.keys()))
+    results += f'\n\n Best K = {knn.k}'
 
     # print("Test the classifier")
     # class_name_and_paths = get_image_paths(use_train=False)
@@ -57,8 +58,14 @@ if __name__ == '__main__':
     #     with open(f'results_tiny_images_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
     #         f.write(results)
 
+    # for number_of_bins in [5, 10, 20, 30, 40, 50]:
+    #     results = evaluate(to_colour_histogram, number_of_bins)
+    #     print(results)
+    #     with open(f'results_color_hist_{number_of_bins}.txt', 'w') as f:
+    #         f.write(results)
+
     for number_of_bins in [5, 10, 20, 30, 40, 50]:
-        results = evaluate(to_colour_histogram, number_of_bins)
+        results = evaluate(to_tiny_image_then_colour_histogram, number_of_bins)
         print(results)
-        with open(f'results_color_hist_{number_of_bins}.txt', 'w') as f:
+        with open(f'results_tiny_image_color_hist_{number_of_bins}.txt', 'w') as f:
             f.write(results)
