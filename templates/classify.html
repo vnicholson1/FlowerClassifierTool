@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+    <h1>Flower Classifier!</h1>
+
+    <form action="/">
+        <input type="submit" value="Back" />
+    </form>
+
+    <br>
+
+
+    {% for prediction in predictions%}
+
+    <img src="/static/{{ prediction[0] }}.jpg"/>
+
+    <p> Prediction: {{ prediction[0] }} </p>
+    <p> Confidence: {{ prediction[1] }} </p>
+    <br>
+
+    {% endfor %}
+
+
+</body>
+
+</html>
