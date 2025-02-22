@@ -3,6 +3,27 @@ from feature_extraction import get_sift_features, to_colour_histogram, to_edge_a
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 import numpy as np
+from sklearn import svm
+
+
+def test_classifier(classifier, function, *params):
+    # Create the test set
+    class_name_and_paths = get_image_paths(folder_name='reduced_test')
+    class_names = list(class_name_and_paths.keys())
+    test_data = {}
+    for class_name, paths in class_name_and_paths.items():
+        test_data[class_name] = []
+        for path in paths:
+            image_array = function(path, *params)
+            test_data[class_name].append(image_array)
+
+    confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
+    for class_name, list_of_image_features in test_data.items():
+        for image_features in list_of_image_features:
+            predicted = classifier.predict(image_features.reshape(1,-1))[0]
+            confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
+    results = pretty_confusion_matrix(confusion_matrix, list(class_name_and_paths.keys()))
+    return results
 
 
 def evaluate(function, *params):
@@ -17,29 +38,23 @@ def evaluate(function, *params):
 
     print('Created image feature set')
 
+    # x_list = []
+    # y_list = []
+    # for class_name, list_of_feats in training_data.items():
+    #     for feats in list_of_feats:
+    #         x_list.append(feats)
+    #         y_list.append(class_name)
+    # svm_classifier = svm.SVC()
+    # X = np.vstack(x_list)
+    # Y = np.asarray(y_list)
+    # svm_classifier.fit(X, Y)
+    # return test_classifier(svm_classifier, function, *params)
+
     # Create the classifier
     knn = NearestNeighbourClassifier(training_data, k=5)
-
     print('Created classifier')
-
-    # Create the test set
-    class_name_and_paths = get_image_paths(folder_name='reduced_test')
-    class_names = list(class_name_and_paths.keys())
-    test_data = {}
-    for class_name, paths in class_name_and_paths.items():
-        test_data[class_name] = []
-        for path in paths:
-            image_array = function(path, *params)
-            test_data[class_name].append(image_array)
-
-    confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
-    for class_name, list_of_image_features in test_data.items():
-        for image_features in list_of_image_features:
-            predicted, _ = knn.classify(image_features)
-            confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
-    results = pretty_confusion_matrix(confusion_matrix, list(class_name_and_paths.keys()))
-    results += f'\n\n Best K = {knn.k}'
-    return results
+    return test_classifier(knn, function, *params)
+    
 
 
 def evaluate_bow(num_clusters):

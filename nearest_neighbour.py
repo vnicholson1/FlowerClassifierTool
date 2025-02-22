@@ -93,6 +93,10 @@ class NearestNeighbourClassifier:
             predictions_count[class_name] += 1
 
         return predictions_count
+    
+    def predict(self, input):
+        prediction, _ = self.classify(input.reshape(-1, 1))
+        return [prediction]
 
     def classify(self, input) -> Tuple[str, float]:
         predictions_count = self._do_classification(input)
