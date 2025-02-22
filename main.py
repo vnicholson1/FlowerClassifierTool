@@ -1,5 +1,5 @@
-from bow import create_training_data, read_and_clusterize
-from feature_extraction import get_sift_features, to_colour_histogram, to_edge_and_colour, to_tiny_image, to_tiny_image_then_colour_histogram, to_tiny_image_with_edges
+from bow import create_training_data
+from feature_extraction import to_edge_and_colour, to_tiny_image, to_tiny_image_with_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 import numpy as np
@@ -108,3 +108,9 @@ if __name__ == '__main__':
             print(results)
             with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
                 f.write(results)
+
+    for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+        results = evaluate_svm(to_tiny_image_with_edges, edge_image_size)
+        print(results)
+        with open(f'results_svm_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
+            f.write(results)
