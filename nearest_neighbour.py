@@ -69,7 +69,7 @@ class NearestNeighbourClassifier:
             for data in features:
                 distance = 0
                 for x in range(len(data)):
-                    distance += (data[x] - normalised_input[x]) ** 3
+                    distance += (data[x] - normalised_input[x]) ** 2
                     if len(best_distances) == self.k and distance > max(best_distances):
                         break
 
