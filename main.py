@@ -1,5 +1,6 @@
 from PIL import Image
 
+from bow import get_bag_of_words
 from feature_extraction import to_colour_histogram, to_edge_and_colour, to_tiny_image, to_tiny_image_then_colour_histogram, to_tiny_image_with_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
@@ -65,9 +66,14 @@ if __name__ == '__main__':
     #     with open(f'results_tiny_images_with_edges_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
     #         f.write(results)
 
-    for tiny_image_size in [(8,8)]:
-        for edge_image_size in [(16,16)]:
-            results = evaluate(to_edge_and_colour, tiny_image_size, edge_image_size)
-            print(results)
-            with open(f'results_tiny_images_and_edges_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
-                f.write(results)
+    # for tiny_image_size in [(8,8)]:
+    #     for edge_image_size in [(16,16)]:
+    #         results = evaluate(to_edge_and_colour, tiny_image_size, edge_image_size)
+    #         print(results)
+    #         with open(f'results_tiny_images_and_edges_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
+    #             f.write(results)
+
+    results = evaluate(get_bag_of_words)
+    print(results)
+    with open(f'results_bow.txt', 'w') as f:
+        f.write(results)

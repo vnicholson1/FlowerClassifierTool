@@ -10,7 +10,7 @@ import base64
 app = Flask(__name__)
 
 
-class_name_and_paths = get_image_paths(use_train=True)
+class_name_and_paths = get_image_paths(use_reduced_train=False)
 training_data = {}
 for class_name, paths in class_name_and_paths.items():
     training_data[class_name] = []

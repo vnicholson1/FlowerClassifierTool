@@ -1,3 +1,5 @@
 pillow
 numpy
 flask
+opencv-contrib-python>=4.4
+scikit-learn
