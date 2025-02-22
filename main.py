@@ -50,8 +50,9 @@ def evaluate_knn(function, *params):
     return test_classifier(knn, function, *params)
 
 
-def evaluate_svm(c, gamma, kernel):
-    training_data = create_training_data(to_edge_and_colour, [8,8], [16,16])
+def evaluate_svm(function, *params):
+    training_data = create_training_data(function, *params)
+    print('Created image feature set')
     x_list = []
     y_list = []
     for class_name, list_of_feats in training_data.items():
@@ -60,19 +61,23 @@ def evaluate_svm(c, gamma, kernel):
             y_list.append(class_name)
     X = np.vstack(x_list)
     Y = np.asarray(y_list)
+    print('Convert to numpy arrays')
     # tuning code
     #best -  {'C': 0.1, 'gamma': 1, 'kernel': 'rbf'}
-    # param_grid = {'C': [0.1, 1, 10, 100, 1000],  
-    #           'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-    #           'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
-    # grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0, scoring=) 
-    # grid.fit(X, Y)
-    # print(grid.best_params_) 
-    # print(grid.best_estimator_)
+    param_grid = {'C': [0.1, 1, 10, 100, 1000],  
+              'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+              'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
+    grid.fit(X, Y)
     # tuning code end
-    svm_classifier = svm.SVC(C=c, gamma=gamma, kernel=kernel)
+    svm_classifier = svm.SVC(**grid.best_params_)
     svm_classifier.fit(X, Y)
-    return test_classifier(svm_classifier, to_edge_and_colour, [8,8], [16,16])
+    print('Tuned classifier')
+    results = test_classifier(svm_classifier, function, *params)
+    results += f"\n\nC={grid.best_params_['C']}"
+    results += f"\ngamma={grid.best_params_['gamma']}"
+    results += f"\nkernel={grid.best_params_['kernel']}"
+    return results
 
     
 
@@ -94,13 +99,12 @@ if __name__ == '__main__':
     #     for edge_image_size in [(16,16)]:
     #         results = evaluate_knn(to_edge_and_colour, tiny_image_size, edge_image_size)
     #         print(results)
-    #         with open(f'results_svm.txt', 'w') as f:
+    #         with open(f'results_knn.txt', 'w') as f:
     #             f.write(results)
 
-    for c in [0.1, 1, 10, 100, 1000]:
-        for gamma in [1, 0.1, 0.01, 0.001, 0.0001]:
-            for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
-                results = evaluate_svm(c, gamma, kernel)
-                print(results)
-                with open(f'results_svm_c_{c}_gamma_{gamma}_kernel_{kernel}.txt', 'w') as f:
-                    f.write(results)
+    for tiny_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+        for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+            results = evaluate_svm(to_edge_and_colour, tiny_image_size, edge_image_size)
+            print(results)
+            with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
+                f.write(results)
