@@ -2,7 +2,7 @@
 
 A simple tool using kNN and tiny images for flower classifiction to evaluate their effectiveness.
 
-Feature extraction methods (training balanced accuracy):
+Feature extraction methods (training balanced accuracy - reduced_training_set):
 
 Best tiny images (colour recognition only): 52.155204692984505% k = 1 and 8x8 size
 

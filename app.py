@@ -15,8 +15,7 @@ training_data = {}
 for class_name, paths in class_name_and_paths.items():
     training_data[class_name] = []
     for path in paths:
-        image = Image.open(path)
-        image_array = to_edge_and_colour(image, (8,8), (16,16))
+        image_array = to_edge_and_colour(path, (8,8), (16,16))
         training_data[class_name].append(image_array)
 
 k = 5

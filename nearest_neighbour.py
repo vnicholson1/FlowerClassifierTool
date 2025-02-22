@@ -37,7 +37,7 @@ class NearestNeighbourClassifier:
             best_balanced_accuracy = -1
             best_confusion_matrix = None
             num_data = sum([len(x) for x in [y for y in validation_set.values()]])
-            for k in range(1, min(11, num_data), 2):
+            for k in range(5, min(30, num_data), 5):
                 self.k = k 
                 confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
                 for class_name, list_of_image_features in validation_set.items():
@@ -69,7 +69,7 @@ class NearestNeighbourClassifier:
             for data in features:
                 distance = 0
                 for x in range(len(data)):
-                    distance += (data[x] - normalised_input[x]) ** 2
+                    distance += (data[x] - normalised_input[x]) ** 3
                     if len(best_distances) == self.k and distance > max(best_distances):
                         break
 
