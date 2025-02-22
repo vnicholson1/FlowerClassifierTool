@@ -1,4 +1,3 @@
-from bow import create_training_data
 from feature_extraction import to_edge_and_colour, to_tiny_image, to_tiny_image_with_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
