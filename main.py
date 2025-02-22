@@ -22,6 +22,8 @@ def evaluate(function, *params):
     results += f'\n\n Best K = {knn.k}'
     return results
 
+    
+
 
 def evaluate_bow(num_clusters):
     # Create feature set
