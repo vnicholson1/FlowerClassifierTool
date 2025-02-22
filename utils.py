@@ -43,8 +43,8 @@ def calculate_balanced_accuracy(confusion_matrix):
     return accuracy_sum / len(confusion_matrix)
 
 
-def get_image_paths(use_reduced_train: bool):
-    folder = os.path.join("data", "reduced_train") if use_reduced_train else os.path.join("data", "train")
+def get_image_paths(folder_name: str):
+    folder = os.path.join("data", folder_name)
     class_names_and_paths = {}
     for directory, _, _ in os.walk(folder):
         _, class_name = os.path.split(directory)
@@ -52,8 +52,5 @@ def get_image_paths(use_reduced_train: bool):
         for image_path in listdir(directory):
             if isfile(join(directory, image_path)):
                 class_names_and_paths[class_name].append(join(directory, image_path))
-    if use_reduced_train:
-        del class_names_and_paths['reduced_train']
-    else:
-        del class_names_and_paths['train']
+    del class_names_and_paths[folder_name]
     return class_names_and_paths

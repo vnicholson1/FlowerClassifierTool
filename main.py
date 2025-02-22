@@ -2,11 +2,12 @@ from bow import create_training_data, read_and_clusterize
 from feature_extraction import get_sift_features, to_colour_histogram, to_edge_and_colour, to_tiny_image, to_tiny_image_then_colour_histogram, to_tiny_image_with_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
+import numpy as np
 
 
 def evaluate(function, *params):
     # Create feature set
-    class_name_and_paths = get_image_paths(use_reduced_train=True)
+    class_name_and_paths = get_image_paths(folder_name='reduced_train')
     training_data = {}
     for class_name, paths in class_name_and_paths.items():
         training_data[class_name] = []
@@ -17,17 +18,33 @@ def evaluate(function, *params):
     print('Created image feature set')
 
     # Create the classifier
-    knn = NearestNeighbourClassifier(training_data)
-    results = pretty_confusion_matrix(knn.training_confusion_matrix, list(class_name_and_paths.keys()))
+    knn = NearestNeighbourClassifier(training_data, k=5)
+
+    print('Created classifier')
+
+    # Create the test set
+    class_name_and_paths = get_image_paths(folder_name='reduced_test')
+    class_names = list(class_name_and_paths.keys())
+    test_data = {}
+    for class_name, paths in class_name_and_paths.items():
+        test_data[class_name] = []
+        for path in paths:
+            image_array = function(path, *params)
+            test_data[class_name].append(image_array)
+
+    confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
+    for class_name, list_of_image_features in test_data.items():
+        for image_features in list_of_image_features:
+            predicted, _ = knn.classify(image_features)
+            confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
+    results = pretty_confusion_matrix(confusion_matrix, list(class_name_and_paths.keys()))
     results += f'\n\n Best K = {knn.k}'
     return results
-
-    
 
 
 def evaluate_bow(num_clusters):
     # Create feature set
-    class_name_and_paths = get_image_paths(use_reduced_train=True)
+    class_name_and_paths = get_image_paths(folder_name='reduced_train')
     kmeans = read_and_clusterize(class_name_and_paths, num_clusters)
     training_data = create_training_data(class_name_and_paths, kmeans, num_clusters)
 
