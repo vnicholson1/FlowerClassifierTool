@@ -21,6 +21,7 @@ with open('training_features.json') as f:
 print(f"Number of training data {len(training_data['training_data'])}")
 class_name_and_paths = get_image_paths(folder_name='train')
 class_names = list(class_name_and_paths.keys())
+class_names = sorted(class_names)
 X = np.array([np.array(xi) for xi in training_data['training_data']])
 Y = np.array(training_data['labels'])
 
@@ -57,8 +58,6 @@ def classify_top_x(image_features, x: int):
             break
         result.append((class_names[class_index], prob))
         i += 1
-    print(result)
-    print(class_names)
     return result
 
 
@@ -78,7 +77,6 @@ def classify():
     b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
     feature_array = best_feature_extraction(img)
     normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
-    print(normalised_input)
     top_x = classify_top_x(normalised_input, 5)
 
     top_x_with_images = []
