@@ -61,7 +61,8 @@ def classify():
     file.seek(0)
     b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
     feature_array = best_feature_extraction(img)
-    top_x = classify_top_x(feature_array, 5)
+    normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
+    top_x = classify_top_x(normalised_input, 5)
 
     top_x_with_images = []
     for top in top_x:

@@ -11,7 +11,8 @@ for class_name, paths in class_name_and_paths.items():
     training_data[class_name] = []
     for path in paths:
         image_array = to_edge_and_colour(path, (4,4), (8,8))  # currently the best feature extraction with an svm
-        training_data[class_name].append(image_array)
+        normalised_input = (image_array-np.min(image_array))/(np.max(image_array)-np.min(image_array))
+        training_data[class_name].append(normalised_input)
 
 x_list = []
 y_list = []
