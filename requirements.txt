@@ -1,4 +1,4 @@
-numpy==1.18.4
-Flask==2.0.1
-scikit-learn==0.23.1
-pillow==10.4.0
+numpy
+Flask
+scikit-learn
+pillow
