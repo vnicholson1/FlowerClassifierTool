@@ -25,17 +25,17 @@ X = np.array([np.array(xi) for xi in training_data['training_data']])
 Y = np.array(training_data['labels'])
 
 print('Tuning the classifier')
-param_grid = {'C': [0.1, 1, 10, 100, 1000],  
-              'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-              'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
-grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
-grid.fit(X, Y)
+# param_grid = {'C': [0.1, 1, 10, 100, 1000],  
+#               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+#               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+# grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
+# grid.fit(X, Y)
 
 
 print('Creating the classifier')
-print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
-# svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
-svm_classifier = svm.SVC(**grid.best_params_, probability=True)
+# print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
+svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
+# svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 svm_classifier.fit(X, Y)
 
 print('Initialisation Complete')
@@ -75,6 +75,7 @@ def classify():
     b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
     feature_array = best_feature_extraction(img)
     normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
+    print(normalised_input)
     top_x = classify_top_x(normalised_input, 5)
 
     top_x_with_images = []
