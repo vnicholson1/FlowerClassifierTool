@@ -101,12 +101,12 @@ if __name__ == '__main__':
     #         with open(f'results_knn.txt', 'w') as f:
     #             f.write(results)
 
-    for tiny_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-        for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-            results = evaluate_svm(to_edge_and_colour, tiny_image_size, edge_image_size)
-            print(results)
-            with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
-                f.write(results)
+    # for tiny_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+    #     for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+    #         results = evaluate_svm(to_edge_and_colour, tiny_image_size, edge_image_size)
+    #         print(results)
+    #         with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
+    #             f.write(results)
 
     for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
         results = evaluate_svm(to_tiny_image_with_edges, edge_image_size)
