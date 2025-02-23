@@ -57,6 +57,7 @@ def classify_top_x(image_features, x: int):
             break
         result.append((class_names[class_index], prob))
         i += 1
+    print(result)
     return result
 
 
