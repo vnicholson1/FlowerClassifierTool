@@ -33,6 +33,7 @@ grid.fit(X, Y)
 
 
 print('Creating the classifier')
+print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
 # svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
 svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 svm_classifier.fit(X, Y)
