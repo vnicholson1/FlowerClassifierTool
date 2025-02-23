@@ -24,7 +24,8 @@ X = np.array([np.array(xi) for xi in training_data['training_data']])
 Y = np.array(training_data['labels'])
 
 print('Creating the classifier')
-svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
+# svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
+svm_classifier = svm.SVC(probability=True)
 svm_classifier.fit(X, Y)
 
 print('Initialisation Complete')
