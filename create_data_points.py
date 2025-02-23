@@ -5,7 +5,7 @@ from utils import get_image_paths
 
 
 print('Creating image feature set')
-class_name_and_paths = get_image_paths(folder_name='reduced_train')
+class_name_and_paths = get_image_paths(folder_name='train')
 training_data = {}
 for class_name, paths in class_name_and_paths.items():
     training_data[class_name] = []
@@ -24,4 +24,4 @@ Y = np.asarray(y_list)
 print('Convert to numpy arrays')
 
 with open('training_features.json', 'w') as f:
-    json.dump({'training_data': X, 'labels': Y}, f)
+    json.dump({'training_data': [x.tolist() for x in X], 'labels': Y.tolist()}, f)

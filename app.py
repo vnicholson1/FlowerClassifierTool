@@ -1,44 +1,69 @@
 from flask import Flask, render_template, request
 
-from feature_extraction import to_edge_and_colour
-from nearest_neighbour import NearestNeighbourClassifier
-from utils import get_image_paths
+from feature_extraction import best_feature_extraction
 from PIL import Image
 import base64
+import json
+import numpy as np
+
+from utils import get_image_paths
+from sklearn import svm
 
 
 app = Flask(__name__)
 
 
+# Initialising the classifier
+print('Loading training data')
+with open('training_features.json') as f:
+    training_data = json.load(f)
 class_name_and_paths = get_image_paths(folder_name='train')
-training_data = {}
-for class_name, paths in class_name_and_paths.items():
-    training_data[class_name] = []
-    for path in paths:
-        image_array = to_edge_and_colour(path, (8,8), (16,16))
-        training_data[class_name].append(image_array)
+class_names = list(class_name_and_paths.keys())
+X = np.array([np.array(xi) for xi in training_data['training_data']])
+Y = np.array(training_data['labels'])
 
-k = 5
-knn = NearestNeighbourClassifier(training_data, k=k)
+print('Creating the classifier')
+svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
+svm_classifier.fit(X, Y)
+
+print('Initialisation Complete')
+
+
+def classify_top_x(image_features, x: int):
+    predict_probablilities = svm_classifier.predict_proba(image_features.reshape(1,-1))
+    predict_probablilities = predict_probablilities.tolist()[0]
+    props_dict = {
+        i: prob
+        for i, prob in enumerate(predict_probablilities)
+    }
+    sorted_probs = dict(sorted(props_dict.items(), key=lambda item: item[1], reverse=True))
+    result = []
+    i = 0
+    for class_index, prob in sorted_probs.items():
+        if i >= x:
+            break
+        result.append((class_names[class_index], prob))
+        i += 1
+    return result
 
 
 @app.route('/', methods=['GET'])
 def main():
-    class_counts = {
-        key: len(value) for key, value in class_name_and_paths.items()
-    }
-    return render_template('index.html', class_counts=class_counts)
+    counts = dict()
+    for i in training_data['labels']:
+        counts[i] = counts.get(i, 0) + 1
+    return render_template('index.html', class_counts=counts)
 
 
 @app.route('/classify', methods=['POST'])
 def classify():
     file = request.files['upload']
     img = Image.open(file)
-    feature_array = to_edge_and_colour(img, (8,8), (16,16))
-    top_three = knn.classify_top_x(feature_array, k)
+    feature_array = best_feature_extraction(img)
+    top_x = classify_top_x(feature_array, 5)
 
     top_x_with_images = []
-    for top in top_three:
+    for top in top_x:
         image_path = class_name_and_paths[top[0]][0]
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())

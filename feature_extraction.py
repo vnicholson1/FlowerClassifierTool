@@ -3,6 +3,20 @@ import numpy as np
 import cv2
 
 
+def best_feature_extraction(pillow_image):
+    smaller_image = pillow_image.resize([4,4], Image.Resampling.LANCZOS)
+    tiny_image = np.array(smaller_image).flatten()
+    greyscale = pillow_image.convert('L')
+    edge_image = greyscale.filter(ImageFilter.SMOOTH_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.FIND_EDGES)
+    smaller_image = edge_image.resize([8,8], Image.Resampling.LANCZOS)
+    # edge_image.show()
+    # pillow_image.show()
+    flattened_edges = np.array(smaller_image).flatten()
+    edge_and_colours = np.concatenate((tiny_image, flattened_edges))
+    return edge_and_colours
+
+
+
 def get_sift_features(image_path, num_features):
     array_length = num_features * 128
     img = cv2.imread(image_path)

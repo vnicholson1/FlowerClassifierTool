@@ -19,6 +19,10 @@ Best edges only:
 
 Best tiny images and edges: 66.55873300575071%, C=0.1, gamma=1, kernel=linear. 4x4 tiny image and 8x8 edge image.
 
+# Updating training data
+
+Add any new images to the `train` folder and run `create_datapoints.py` to create the JSON file of training data.
+
 # Flask app
 
 To launch, go into the root directory and run
