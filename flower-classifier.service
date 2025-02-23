@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/FlowerClassifierTool
-ExecStart=/home/pi/FlowerClassifierTool/flower-classifier-start.sh
+User=vincent
+WorkingDirectory=/home/vincent/FlowerClassifierTool
+ExecStart=/home/vincent/FlowerClassifierTool/flower-classifier-start.sh
 
 [Install]
 WantedBy=multi-user.target
