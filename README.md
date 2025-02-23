@@ -43,3 +43,10 @@ Once the requirements are installed, use the following commands to launch the se
     sudo systemctl start flower-classifier
     sudo systemctl status flower-classifier
 
+## Issues 
+
+You may have to run:
+
+    sudo apt-get install libopenblas-dev
+
+If you get issues installing numpy
