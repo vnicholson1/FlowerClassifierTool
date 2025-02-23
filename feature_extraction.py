@@ -1,6 +1,5 @@
 from PIL import Image, ImageFilter
 import numpy as np
-import cv2
 
 
 def best_feature_extraction(pillow_image):
@@ -15,21 +14,6 @@ def best_feature_extraction(pillow_image):
     edge_and_colours = np.concatenate((tiny_image, flattened_edges))
     return edge_and_colours
 
-
-
-def get_sift_features(image_path, num_features):
-    array_length = num_features * 128
-    img = cv2.imread(image_path)
-    img = cv2.resize(img,(150,150))
-    # Applying SIFT detector
-    gray= cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    sift = cv2.SIFT_create(num_features)
-    kp, des = sift.detectAndCompute(gray,None)
-    # img=cv2.drawKeypoints(gray,kp,img)
-    # cv2.imwrite('image-with-keypoints.jpg',img)
-
-    hist, _ = np.histogram(des, bins=50)
-    return hist
 
 
 def to_tiny_image(image_path, image_size):
