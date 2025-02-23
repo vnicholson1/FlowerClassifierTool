@@ -43,8 +43,8 @@ print('Initialisation Complete')
 
 def classify_top_x(image_features, x: int):
     predict_probablilities = svm_classifier.predict_proba(image_features.reshape(1,-1))
-    print(predict_probablilities)
     predict_probablilities = predict_probablilities.tolist()[0]
+    print(predict_probablilities)
     props_dict = {
         i: prob
         for i, prob in enumerate(predict_probablilities)
