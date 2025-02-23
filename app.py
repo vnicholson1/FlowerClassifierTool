@@ -9,7 +9,6 @@ import numpy as np
 from utils import get_image_paths
 from sklearn import svm
 
-
 app = Flask(__name__)
 
 
@@ -59,6 +58,8 @@ def main():
 def classify():
     file = request.files['upload']
     img = Image.open(file)
+    file.seek(0)
+    b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
     feature_array = best_feature_extraction(img)
     top_x = classify_top_x(feature_array, 5)
 
@@ -69,7 +70,7 @@ def classify():
             encoded_string = base64.b64encode(image_file.read())
         top_x_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
     sorted_by_second = sorted(top_x_with_images, key=lambda tup: tup[1], reverse=True)
-    return render_template('classify.html', predictions=sorted_by_second)
+    return render_template('classify.html', uploaded_file=b64_encoded_upload, predictions=sorted_by_second)
 
 
 if __name__ == '__main__':
