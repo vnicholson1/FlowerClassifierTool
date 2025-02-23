@@ -14,12 +14,29 @@
 <body>
     <h1>Flower Classifier!</h1>
 
+    <h2> Classify </h2>
     <form action="/classify" method="POST" enctype="multipart/form-data">
         <input type="file" name="upload">
         <button type="submit">Upload</button>
     </form>
 
+    <h2> Upload as training data </h2>
+    <form action="/training" method="POST" enctype="multipart/form-data">
+        <label for="classes">What type of flower is this?</label>
+        <select id="classes" name="classes">
+            {% for class_name, count in class_counts.items() %}
+            <option value="{{ class_name}}">{{ class_name}}</option>
+            {% endfor %}
+        </select>
+        <input type="file" name="upload">
+        <button type="submit">Upload</button>
+    </form>
+
+    <p>{{ status }}</p>
+
     <br>
+
+    <h2> Class counts: </h2>
 
     <table>
         <tr>

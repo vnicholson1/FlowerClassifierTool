@@ -1,5 +1,11 @@
+import os
+import random
+import string
 from flask import Flask, render_template, request
 from sklearn.model_selection import GridSearchCV
+from werkzeug.utils import secure_filename
+from pathlib import Path
+
 
 from feature_extraction import best_feature_extraction
 from PIL import Image
@@ -25,21 +31,33 @@ class_names = sorted(class_names)
 X = np.array([np.array(xi) for xi in training_data['training_data']])
 Y = np.array(training_data['labels'])
 
-print('Tuning the classifier')
+# print('Tuning the classifier')
 # param_grid = {'C': [0.1, 1, 10, 100, 1000],  
 #               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
 #               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
 # grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
 # grid.fit(X, Y)
+# svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 
 
 print('Creating the classifier')
 # print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
 svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
-# svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 svm_classifier.fit(X, Y)
+counts = dict()
+for i in training_data['labels']:
+    counts[i] = counts.get(i, 0) + 1
 
 print('Initialisation Complete')
+ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'tiff', 'jfif'])
+
+
+def generate_random_string():
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(30))
+
+
+def allowed_file(filename):     
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def classify_top_x(image_features, x: int):
@@ -63,30 +81,55 @@ def classify_top_x(image_features, x: int):
 
 @app.route('/', methods=['GET'])
 def main():
-    counts = dict()
-    for i in training_data['labels']:
-        counts[i] = counts.get(i, 0) + 1
-    return render_template('index.html', class_counts=counts)
+    return render_template('index.html', class_counts=counts, status=None)
 
 
 @app.route('/classify', methods=['POST'])
 def classify():
-    file = request.files['upload']
-    img = Image.open(file)
-    file.seek(0)
-    b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
-    feature_array = best_feature_extraction(img)
-    normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
-    top_x = classify_top_x(normalised_input, 5)
+    try:
+        file = request.files['upload']
+        if file and allowed_file(file.filename):
+            img = Image.open(file)
+            file.seek(0)
+            b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
+            feature_array = best_feature_extraction(img)
+            normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
+            top_x = classify_top_x(normalised_input, 5)
 
-    top_x_with_images = []
-    for top in top_x:
-        image_path = class_name_and_paths[top[0]][0]
-        with open(image_path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read())
-        top_x_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
-    sorted_by_second = sorted(top_x_with_images, key=lambda tup: tup[1], reverse=True)
-    return render_template('classify.html', uploaded_file=b64_encoded_upload, predictions=sorted_by_second)
+            top_x_with_images = []
+            for top in top_x:
+                image_path = class_name_and_paths[top[0]][0]
+                with open(image_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read())
+                top_x_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
+            sorted_by_second = sorted(top_x_with_images, key=lambda tup: tup[1], reverse=True)
+            return render_template('classify.html', uploaded_file=b64_encoded_upload, predictions=sorted_by_second)
+        else:
+            return render_template('index.html', class_counts=counts, status='Error uploading file, try again')
+    except Exception as e:
+        return render_template('index.html', status=str(e))
+
+
+@app.route('/training', methods=['POST'])
+def upload_for_training():
+    file = request.files['upload']
+
+    try:
+        if file.filename == '':
+            return render_template('index.html', class_counts=counts, status='No file selected, try again')
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+
+            path = os.path.join('data', 'user_input', request.form['classes'])
+            new_filename = generate_random_string() + '.' + filename.split('.')[-1]
+            Path(path).mkdir(parents=True, exist_ok=True)
+            file.save(os.path.join(path, new_filename))
+            return render_template('index.html', class_counts=counts, status=f"Training upload successful for flower {request.form['classes']}")
+        else:
+            return render_template('index.html', class_counts=counts, status='Error uploading file, try again')
+    except Exception as e:
+        return render_template('index.html', status=str(e))
 
 
 if __name__ == '__main__':
