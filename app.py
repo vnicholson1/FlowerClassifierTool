@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from sklearn.model_selection import GridSearchCV
 
 from feature_extraction import best_feature_extraction
 from PIL import Image
@@ -23,9 +24,17 @@ class_names = list(class_name_and_paths.keys())
 X = np.array([np.array(xi) for xi in training_data['training_data']])
 Y = np.array(training_data['labels'])
 
+print('Tuning the classifier')
+param_grid = {'C': [0.1, 1, 10, 100, 1000],  
+              'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+              'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
+grid.fit(X, Y)
+
+
 print('Creating the classifier')
 # svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
-svm_classifier = svm.SVC(probability=True)
+svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 svm_classifier.fit(X, Y)
 
 print('Initialisation Complete')
