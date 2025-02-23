@@ -16,6 +16,8 @@ app = Flask(__name__)
 print('Loading training data')
 with open('training_features.json') as f:
     training_data = json.load(f)
+
+print(f"Number of training data {len(training_data['training_data'])}")
 class_name_and_paths = get_image_paths(folder_name='train')
 class_names = list(class_name_and_paths.keys())
 X = np.array([np.array(xi) for xi in training_data['training_data']])
