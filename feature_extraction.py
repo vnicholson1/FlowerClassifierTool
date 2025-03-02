@@ -24,7 +24,7 @@ def to_tiny_image(image_path, image_size):
     return np.array(smaller_image).flatten()
 
 
-def to_tiny_image_with_edges(image_path, image_size):
+def to_edges(image_path, image_size):
     pillow_image = Image.open(image_path)
     greyscale = pillow_image.convert('L')
     edge_image = greyscale.filter(ImageFilter.SMOOTH_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.FIND_EDGES)
@@ -36,7 +36,7 @@ def to_tiny_image_with_edges(image_path, image_size):
 
 
 def to_edge_and_colour(image_path, tiny_image_size, edge_image_size):
-    edge_and_colours = np.concatenate((to_tiny_image(image_path, tiny_image_size), to_tiny_image_with_edges(image_path, edge_image_size)))
+    edge_and_colours = np.concatenate((to_tiny_image(image_path, tiny_image_size), to_edges(image_path, edge_image_size)))
     return edge_and_colours
 
 
