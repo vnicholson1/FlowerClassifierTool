@@ -2,7 +2,7 @@ from feature_extraction import to_edge_and_colour, to_tiny_image, to_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 import numpy as np
-from sklearn import svm
+from sklearn import svm, neural_network
 from sklearn.model_selection import GridSearchCV
 
 
@@ -50,6 +50,36 @@ def evaluate_knn(function, *params):
 
 
 def evaluate_svm(function, *params):
+    training_data = create_training_data(function, *params)
+    print('Created image feature set')
+    x_list = []
+    y_list = []
+    for class_name, list_of_feats in training_data.items():
+        for feats in list_of_feats:
+            x_list.append(feats)
+            y_list.append(class_name)
+    X = np.vstack(x_list)
+    Y = np.asarray(y_list)
+    print('Convert to numpy arrays')
+    # tuning code
+    #best -  {'C': 0.1, 'gamma': 1, 'kernel': 'rbf'}
+    param_grid = {'C': [0.1, 1, 10, 100, 1000],  
+              'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+              'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 3) 
+    grid.fit(X, Y)
+    # tuning code end
+    svm_classifier = svm.SVC(**grid.best_params_)
+    svm_classifier.fit(X, Y)
+    print('Tuned classifier')
+    results = test_classifier(svm_classifier, function, *params)
+    results += f"\n\nC={grid.best_params_['C']}"
+    results += f"\ngamma={grid.best_params_['gamma']}"
+    results += f"\nkernel={grid.best_params_['kernel']}"
+    return results
+
+
+def evaluate_nn(function, *params):
     training_data = create_training_data(function, *params)
     print('Created image feature set')
     x_list = []

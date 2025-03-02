@@ -13,7 +13,7 @@ Best tiny images and edges: 55.60685909246514%, k = 1. 8x8 tiny image and 16x16 
 
 SVM:
 
-Best tiny images (colour recognition only):
+Best tiny images (colour recognition only): 57.18345018757145% C=0.1, gamma=1, kernel=linear and 8x8 size.
 
 Best edges only:
 

@@ -12,6 +12,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Python Debugger: PCA experiments",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pca_experiments",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python Debugger: experiments",
             "type": "debugpy",
             "request": "launch",

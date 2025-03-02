@@ -15,7 +15,6 @@ def best_feature_extraction(pillow_image):
     return edge_and_colours
 
 
-
 def to_tiny_image(image_path, image_size):
     pillow_image = Image.open(image_path)
     smaller_image = pillow_image.resize(image_size, Image.Resampling.LANCZOS)
