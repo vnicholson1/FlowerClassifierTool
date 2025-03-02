@@ -1,4 +1,4 @@
-from feature_extraction import extract_glcm_and_colour_hist, to_edge_and_colour, to_tiny_image, to_edges
+from feature_extraction import extract_glcm_and_colour_hist, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 import numpy as np
@@ -67,7 +67,7 @@ def evaluate_svm(function, *params):
     param_grid = {'C': [0.1, 1, 10, 100, 1000],  
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
-    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 3) 
+    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
     grid.fit(X, Y)
     # tuning code end
     svm_classifier = svm.SVC(**grid.best_params_)
@@ -144,7 +144,13 @@ if __name__ == '__main__':
     #         with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
     #             f.write(results)
 
-    results = evaluate_svm(extract_glcm_and_colour_hist, 8, [1,2,3], [0, pi/4, pi/2, 3*pi/4])
-    print(results)
-    with open(f'results_svm_glcm_color_hist.txt', 'w') as f:
-        f.write(results)
+    # results = evaluate_svm(extract_glcm_and_colour_hist, 8, [1,2,3], [0, pi/4, pi/2, 3*pi/4])
+    # print(results)
+    # with open(f'results_svm_glcm_color_hist.txt', 'w') as f:
+    #     f.write(results)
+
+    for bins in [8, 16, 24, 32, 40]:
+        results = evaluate_svm(extract_rgb_histogram, bins)
+        print(results)
+        with open(f'results_svm_color_hist_{bins}.txt', 'w') as f:
+            f.write(results)

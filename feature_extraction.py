@@ -71,18 +71,25 @@ def compute_glcm(img_gray, distance=1, angle=0):
     dx = int(round(distance * cos(angle)))
     dy = int(round(distance * sin(angle)))
     
+    # Initialize the GLCM matrix
     glcm = np.zeros((256, 256), dtype=int)
     
-    # Iterate through image to calculate co-occurrences, making sure indices are valid
-    for i in range(rows - dy):  # Make sure i + dy is within bounds
-        for j in range(cols - dx):  # Make sure j + dx is within bounds
-             current_pixel = img_gray[i, j]
-            neighbor_pixel = img_gray[i + dy, j + dx]
-            glcm[current_pixel, neighbor_pixel] += 1
+    # Iterate through the image to calculate co-occurrences, making sure indices are valid
+    for i in range(rows):
+        for j in range(cols):
+            # Check bounds for neighbor pixel
+            neighbor_i = i + dy
+            neighbor_j = j + dx
+            
+            if 0 <= neighbor_i < rows and 0 <= neighbor_j < cols:
+                current_pixel = img_gray[i, j]
+                neighbor_pixel = img_gray[neighbor_i, neighbor_j]
+                glcm[current_pixel, neighbor_pixel] += 1
     
     # Normalize the GLCM
     glcm = glcm / glcm.sum()
     return glcm
+
 
 # Function to extract GLCM properties (contrast, correlation, energy, homogeneity)
 def extract_glcm_features(image_path, distances=[1], angles=[0]):
