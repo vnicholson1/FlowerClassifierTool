@@ -1,9 +1,10 @@
-from feature_extraction import to_edge_and_colour, to_tiny_image, to_edges
+from feature_extraction import extract_glcm_and_colour_hist, to_edge_and_colour, to_tiny_image, to_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 import numpy as np
-from sklearn import svm, neural_network
-from sklearn.model_selection import GridSearchCV
+from sklearn import svm
+from sklearn.model_selection import GridSearchCV 
+from math import pi
 
 
 def test_classifier(classifier, function, *params):
@@ -143,21 +144,7 @@ if __name__ == '__main__':
     #         with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
     #             f.write(results)
 
-    for image_size in [(4,4), (8,8), (12,12), (16,16)]:
-        results = evaluate_svm(to_tiny_image, image_size)
-        print(results)
-        with open(f'results_svm_tiny_images_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
-            f.write(results)
-
-
-    for image_size in [(4,4), (8,8), (12,12), (16,16)]:
-        results = evaluate_svm(to_edges, image_size)
-        print(results)
-        with open(f'results_svm_tiny_images_with_edges_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
-            f.write(results)
-
-    for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-        results = (to_edges, edge_image_size)
-        print(results)
-        with open(f'results_svm_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
-            f.write(results)
+    results = evaluate_svm(extract_glcm_and_colour_hist, 8, [1,2,3], [0, pi/4, pi/2, 3*pi/4])
+    print(results)
+    with open(f'results_svm_glcm_color_hist.txt', 'w') as f:
+        f.write(results)

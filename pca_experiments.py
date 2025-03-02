@@ -66,7 +66,7 @@ def main():
     train_directory = "data/reduced_train"
     test_directory = "data/reduced_test"
 
-    image_size = (128, 128)
+    image_sizes = [(4,4), (8,8), (12,12), (16,16)]
     classifiers = {
         'SVM': (SVC(), {'C': [0.1, 1, 10],  
               'gamma': [1, 0.1, 0.01, 0.001], 
@@ -75,20 +75,22 @@ def main():
         'Logistic Regression': (LogisticRegression(), {'max_iter': [500, 1000, 1500, 2000, 2500]}),
         'k-NN': (KNeighborsClassifier(n_neighbors=5), {'n_neighbors': [5, 10, 15, 20, 25]})
     }
+
+    for image_size in image_sizes:
     
-    X_train, y_train = extract_features_from_directory(train_directory, image_size)
-    X_test, y_test = extract_features_from_directory(test_directory, image_size)
+        X_train, y_train = extract_features_from_directory(train_directory, image_size)
+        X_test, y_test = extract_features_from_directory(test_directory, image_size)
 
-    for n_components in [20, 40, 60, 80, 100]:
+        # for n_components in [20, 40, 60, 80, 100]:
+            # X_train = reduce_dimensionality(X_train, n_components=n_components)
+            # X_test = reduce_dimensionality(X_test, n_components=n_components)
+
         for classifier_name in ['Random Forest', 'Logistic Regression']:
-            X_train = reduce_dimensionality(X_train, n_components=n_components)
-            X_test = reduce_dimensionality(X_test, n_components=n_components)
-
             classifier, param_grid = classifiers[classifier_name]
             # Train and evaluate classifier with tuning
             best_classifier = train_classifier(X_train, y_train, classifier, param_grid)
             report = test_classifier(best_classifier, X_test, y_test)
-            with open(f'test_{classifier_name}_n_components_{n_components}.txt') as f:
+            with open(f'test_{classifier_name}_tiny_image_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
                 f.write(report)
     
 
