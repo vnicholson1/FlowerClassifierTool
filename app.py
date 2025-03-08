@@ -177,9 +177,13 @@ def validate_training_submittion():
     approved = request.form.get('approve_button') is not None
     file_path = request.form['filepath']
     if approved:
-        pass
+        # bit of a crud but to stop people tampering with the filepath
+        if file_path.startswith('data'):
+            os.rename(file_path, file_path.replace('user_input', 'train'))
     else:
-        pass
+        # bit of a crud but to stop people tampering with the filepath
+        if file_path.startswith('data'):
+            os.remove(file_path)
     class_name = request.form['class_name']
     return_text = "Approved" if approved else "Rejected"
     return render_template('validate.html', existing_images=get_existing_images(), status=f"Flower of class '{class_name}' successfully '{return_text}'.")
