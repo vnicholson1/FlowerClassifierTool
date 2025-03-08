@@ -38,8 +38,9 @@
     </nav>
     <div class="container">
         <h2>Upload Training Data</h2>
+
+        <h3> What type of flowers are these? </h3>
         <form action="/training" method="POST" enctype="multipart/form-data">
-            <label for="classes">What type of flowers are these?</label>
             <select id="classes" name="classes">
                 {% for class_name, count in class_counts.items() %}
                 <option value="{{ class_name}}">{{ class_name}}</option>
