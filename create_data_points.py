@@ -2,6 +2,7 @@ import json
 import numpy as np
 from app import best_feature_extraction
 from utils import get_image_paths
+from PIL import Image
 
 
 print('Creating image feature set')
@@ -10,7 +11,8 @@ training_data = {}
 for class_name, paths in class_name_and_paths.items():
     training_data[class_name] = []
     for path in paths:
-        image_array = best_feature_extraction(path)
+        img = Image.open(path)
+        image_array = best_feature_extraction(img)
         normalised_input = (image_array-np.min(image_array))/(np.max(image_array)-np.min(image_array))
         training_data[class_name].append(normalised_input)
 
