@@ -129,22 +129,23 @@ def upload_training():
 
 @app.route('/training', methods=['POST'])
 def upload_for_training():
-    file = request.files['upload']
-
+    files = request.files.getlist('upload')
     try:
-        if file.filename == '':
-            return render_template('upload.html', class_counts=counts, status='No file selected, try again')
-        
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+        for file in files:
+            if file.filename == '':
+                return render_template('upload.html', class_counts=counts, status='No file selected, try again')
+            
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
 
-            path = os.path.join('data', 'user_input', request.form['classes'])
-            new_filename = generate_random_string() + '.' + filename.split('.')[-1]
-            Path(path).mkdir(parents=True, exist_ok=True)
-            file.save(os.path.join(path, new_filename))
-            return render_template('upload.html', status=f"Training upload successful for flower {request.form['classes']}", class_counts=counts)
-        else:
-            return render_template('upload.html', status='Error uploading file, try again', class_counts=counts)
+                path = os.path.join('data', 'user_input', request.form['classes'])
+                new_filename = generate_random_string() + '.' + filename.split('.')[-1]
+                Path(path).mkdir(parents=True, exist_ok=True)
+                file.save(os.path.join(path, new_filename))
+            else:
+                return render_template('upload.html', status='Error uploading file, try again', class_counts=counts)
+        return render_template('upload.html', status=f"Training upload successful for flower(s) {request.form['classes']}", class_counts=counts)
+
     except Exception as e:
         return render_template('upload.html', status=str(e), class_counts=counts)
 
