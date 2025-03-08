@@ -44,22 +44,27 @@
     </nav>
     <div class="container">
         <h2>Validate Training Data</h2>
+
+        {% if status %}
+        <p>{{ status }}</p>
+        {% endif %}
+
+        {% for class_name, base_64_and_paths in existing_images.items() %}
         <div>
-            <img src="example-flower.jpg" alt="Flower Image">
-            <p>Class: <strong>Rose</strong></p>
-            <button onclick="approve()">Approve</button>
-            <button onclick="reject()">Reject</button>
+            {% for base_64_and_path in base_64_and_paths %}
+            <img src="{{ base_64_and_path[0] }}" alt="Flower Image">
+            <p>Class: <strong>{{ class_name }}</strong></p>
+            <form action="/submit_training" method="POST">
+                <button type="submit" name="approve_button">Approve</button>
+                <button type="submit" name="reject_button">Reject</button>
+                <input type="hidden" id="class_name" name="class_name" value="{{ class_name }}">
+                <input type="hidden" id="filepath" name="filepath" value="{{ base_64_and_path[1] }}">
+            </form>
+            {% endfor %}
         </div>
+        {% endfor %}
     </div>
 
-    <script>
-        function approve() {
-            alert("Training data approved!");
-        }
-        function reject() {
-            alert("Training data rejected!");
-        }
-    </script>
 </body>
 
 </html>

@@ -148,11 +148,41 @@ def upload_for_training():
 
     except Exception as e:
         return render_template('upload.html', status=str(e), class_counts=counts)
+    
+
+
+def get_existing_images():
+    folder = os.path.join("data", "user_input")
+    class_names_and_base64_filename = {}
+    for directory, _, _ in os.walk(folder):
+        _, class_name = os.path.split(directory)
+        for image_path in os.listdir(directory):
+            if os.path.isfile(os.path.join(directory, image_path)):
+                file_path = os.path.join(directory, image_path)
+                with open(file_path, "rb") as image_file:
+                    b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(image_file.read()).decode('utf-8')
+                if class_name not in class_names_and_base64_filename:
+                    class_names_and_base64_filename[class_name] = []
+                class_names_and_base64_filename[class_name].append((b64_encoded_upload, file_path))
+    return class_names_and_base64_filename
 
 
 @app.route('/validate', methods=['GET'])
 def validate_training():
-    return render_template('validate.html')
+    return render_template('validate.html', existing_images=get_existing_images())
+
+
+@app.route('/submit_training', methods=['POST'])
+def validate_training_submittion():
+    approved = request.form.get('approve_button') is not None
+    file_path = request.form['filepath']
+    if approved:
+        pass
+    else:
+        pass
+    class_name = request.form['class_name']
+    return_text = "Approved" if approved else "Rejected"
+    return render_template('validate.html', existing_images=get_existing_images(), status=f"Flower of class '{class_name}' successfully '{return_text}'.")
 
 
 @app.route('/classes', methods=['GET'])
