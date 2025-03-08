@@ -50,3 +50,13 @@ You may have to run:
     sudo apt-get install libopenblas-dev
 
 If you get issues installing numpy
+
+
+## Run training
+
+Would like to get this automatic but couldn't get the crontab to work so this will have to do.
+
+```
+./retrain.sh
+sudo systemctl restart flower-classifier.service
+```
