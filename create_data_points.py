@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from feature_extraction import to_edge_and_colour
+from app import best_feature_extraction
 from utils import get_image_paths
 
 
@@ -10,7 +10,7 @@ training_data = {}
 for class_name, paths in class_name_and_paths.items():
     training_data[class_name] = []
     for path in paths:
-        image_array = to_edge_and_colour(path, (4,4), (8,8))  # currently the best feature extraction with an svm
+        image_array = best_feature_extraction(path)
         normalised_input = (image_array-np.min(image_array))/(np.max(image_array)-np.min(image_array))
         training_data[class_name].append(normalised_input)
 

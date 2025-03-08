@@ -7,8 +7,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 
 
-from feature_extraction import best_feature_extraction
-from PIL import Image
+from PIL import Image, ImageFilter
 import base64
 import json
 import numpy as np
@@ -17,6 +16,19 @@ from utils import get_image_paths
 from sklearn import svm
 
 app = Flask(__name__)
+
+
+def best_feature_extraction(pillow_image):
+    smaller_image = pillow_image.resize([4,4], Image.Resampling.LANCZOS)
+    tiny_image = np.array(smaller_image).flatten()
+    greyscale = pillow_image.convert('L')
+    edge_image = greyscale.filter(ImageFilter.SMOOTH_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.FIND_EDGES)
+    smaller_image = edge_image.resize([8,8], Image.Resampling.LANCZOS)
+    # edge_image.show()
+    # pillow_image.show()
+    flattened_edges = np.array(smaller_image).flatten()
+    edge_and_colours = np.concatenate((tiny_image, flattened_edges))
+    return edge_and_colours
 
 
 # Initialising the classifier
@@ -113,6 +125,28 @@ def classify():
 @app.route('/upload', methods=['GET'])
 def upload_training():
     return render_template('upload.html')
+
+
+@app.route('/training', methods=['POST'])
+def upload_for_training():
+    file = request.files['upload']
+
+    try:
+        if file.filename == '':
+            return render_template('upload.html', class_counts=counts, status='No file selected, try again')
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+
+            path = os.path.join('data', 'user_input', request.form['classes'])
+            new_filename = generate_random_string() + '.' + filename.split('.')[-1]
+            Path(path).mkdir(parents=True, exist_ok=True)
+            file.save(os.path.join(path, new_filename))
+            return render_template('upload.html', status=f"Training upload successful for flower {request.form['classes']}")
+        else:
+            return render_template('upload.html', status='Error uploading file, try again')
+    except Exception as e:
+        return render_template('upload.html', status=str(e))
 
 
 @app.route('/validate', methods=['GET'])

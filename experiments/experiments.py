@@ -1,5 +1,5 @@
-from feature_extraction import extract_glcm_and_colour_hist, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
-from nearest_neighbour import NearestNeighbourClassifier
+from experiments.feature_extraction import extract_glcm_and_colour_hist, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
+from experiments.nearest_neighbour import NearestNeighbourClassifier
 from utils import get_image_paths, pretty_confusion_matrix
 import numpy as np
 from sklearn import svm
