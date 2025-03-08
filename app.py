@@ -157,7 +157,7 @@ def validate_training():
 
 @app.route('/classes', methods=['GET'])
 def view_classes():
-    return render_template('classes.html')
+    return render_template('classes.html', class_counts=counts)
 
 
 if __name__ == '__main__':

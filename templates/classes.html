@@ -59,26 +59,12 @@
                 <th>Class Name</th>
                 <th>Count</th>
             </tr>
+            {% for class_name, count in class_counts.items() %}
             <tr>
-                <td>Rose</td>
-                <td>50</td>
+                <td>{{ class_name }}</td>
+                <td>{{ count }}</td>
             </tr>
-            <tr>
-                <td>Tulip</td>
-                <td>40</td>
-            </tr>
-            <tr>
-                <td>Sunflower</td>
-                <td>30</td>
-            </tr>
-            <tr>
-                <td>Daisy</td>
-                <td>20</td>
-            </tr>
-            <tr>
-                <td>Orchid</td>
-                <td>15</td>
-            </tr>
+            {% endfor %}
         </table>
     </div>
 </body>
