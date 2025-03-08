@@ -63,7 +63,6 @@ def allowed_file(filename):
 def classify_top_x(image_features, x: int):
     predict_probablilities = svm_classifier.predict_proba(image_features.reshape(1,-1))
     predict_probablilities = predict_probablilities.tolist()[0]
-    print(predict_probablilities)
     props_dict = {
         i: prob
         for i, prob in enumerate(predict_probablilities)
@@ -79,9 +78,25 @@ def classify_top_x(image_features, x: int):
     return result
 
 
+# navigation pane
 @app.route('/', methods=['GET'])
 def main():
     return render_template('index.html', class_counts=counts, status=None)
+
+
+@app.route('/upload', methods=['GET'])
+def upload_training():
+    return render_template('upload.html', class_counts=counts, status=None)
+
+
+@app.route('/validate', methods=['GET'])
+def validate_training():
+    return render_template('validate.html', class_counts=counts, status=None)
+
+
+@app.route('/classes', methods=['GET'])
+def view_classes():
+    return render_template('classes.html', class_counts=counts, status=None)
 
 
 @app.route('/classify', methods=['POST'])

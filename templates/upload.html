@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Training Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+        }
+
+        nav {
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/upload">Upload Training Data</a>
+        <a href="/validate">Validate Data</a>
+        <a href="/classes">Supported Classes</a>
+    </nav>
+    <div class="container">
+        <h2>Upload Training Data</h2>
+        <input type="file" id="trainFile" accept="image/*">
+        <input type="text" id="className" placeholder="Enter class name">
+        <button onclick="uploadData()">Upload</button>
+    </div>
+
+    <script>
+        function uploadData() {
+            const file = document.getElementById('trainFile').files[0];
+            const className = document.getElementById('className').value;
+
+            if (file && className) {
+                alert(`Uploaded ${file.name} as ${className}`);
+            } else {
+                alert("Please select a file and enter a class name.");
+            }
+        }
+    </script>
+</body>
+
+</html>

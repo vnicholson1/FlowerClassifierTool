@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        nav {
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/upload">Upload Training Data</a>
+        <a href="/validate">Validate Data</a>
+        <a href="/classes">Supported Classes</a>
+    </nav>
+    <div class="container">
+        <h2>Validate Training Data</h2>
+        <div>
+            <img src="example-flower.jpg" alt="Flower Image">
+            <p>Class: <strong>Rose</strong></p>
+            <button onclick="approve()">Approve</button>
+            <button onclick="reject()">Reject</button>
+        </div>
+    </div>
+
+    <script>
+        function approve() {
+            alert("Training data approved!");
+        }
+        function reject() {
+            alert("Training data rejected!");
+        }
+    </script>
+</body>
+
+</html>

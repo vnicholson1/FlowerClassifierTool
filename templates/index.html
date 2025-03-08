@@ -1,59 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Classifier</title>
     <style>
-        table,
-        th,
-        td {
-            border: 0.5px solid black;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        nav {
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: blue;
         }
     </style>
 </head>
 
 <body>
-    <h1>Flower Classifier!</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/upload">Upload Training Data</a>
+        <a href="/validate">Validate Data</a>
+        <a href="/classes">Supported Classes</a>
+    </nav>
 
-    <h2> Classify </h2>
-    <form action="/classify" method="POST" enctype="multipart/form-data">
-        <input type="file" name="upload">
-        <button type="submit">Upload</button>
-    </form>
+    <div class="container">
+        <h2>Flower Classifier</h2>
+        <p>Upload an image to classify a flower.</p>
+        <input type="file" id="fileInput" accept="image/*">
+        <img id="preview" src="" alt="" style="display:none;">
+        <h3>Top Predictions</h3>
+        <ul id="predictions"></ul>
+    </div>
 
-    <h2> Upload as training data </h2>
-    <form action="/training" method="POST" enctype="multipart/form-data">
-        <label for="classes">What type of flower is this?</label>
-        <select id="classes" name="classes">
-            {% for class_name, count in class_counts.items() %}
-            <option value="{{ class_name}}">{{ class_name}}</option>
-            {% endfor %}
-        </select>
-        <input type="file" name="upload">
-        <button type="submit">Upload</button>
-    </form>
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('preview').src = e.target.result;
+                    document.getElementById('preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
 
-    {% if status %}
-    <p>{{ status }}</p>
-    {% endif %}
-
-    <br>
-
-    <h2> Class counts: </h2>
-
-    <table>
-        <tr>
-            <th><b>Flower Type</b></th>
-            <th><b>Count</b></th>
-        </tr>
-        {% for class_name, count in class_counts.items() %}
-        <tr>
-            <td>{{ class_name }}</td>
-            <td>{{ count }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-
-
+                // Simulated Predictions
+                document.getElementById('predictions').innerHTML = `
+                    <li>Rose (90%)</li>
+                    <li>Tulip (75%)</li>
+                    <li>Sunflower (60%)</li>
+                    <li>Daisy (45%)</li>
+                    <li>Orchid (30%)</li>
+                `;
+            }
+        });
+    </script>
 </body>
 
 </html>
