@@ -37,24 +37,21 @@
         <a href="/classes">Supported Classes</a>
     </nav>
     <div class="container">
-        <h2>Upload Training Data</h2>
-        <input type="file" id="trainFile" accept="image/*">
-        <input type="text" id="className" placeholder="Enter class name">
-        <button onclick="uploadData()">Upload</button>
+        <form action="/training" method="POST" enctype="multipart/form-data">
+            <label for="classes">What type of flower is this?</label>
+            <select id="classes" name="classes">
+                {% for class_name, count in class_counts.items() %}
+                <option value="{{ class_name}}">{{ class_name}}</option>
+                {% endfor %}
+            </select>
+            <input type="file" name="upload">
+            <button type="submit">Upload</button>
+        </form>
+
+        {% if status %}
+        <p>{{ status }}</p>
+        {% endif %}
     </div>
-
-    <script>
-        function uploadData() {
-            const file = document.getElementById('trainFile').files[0];
-            const className = document.getElementById('className').value;
-
-            if (file && className) {
-                alert(`Uploaded ${file.name} as ${className}`);
-            } else {
-                alert("Please select a file and enter a class name.");
-            }
-        }
-    </script>
 </body>
 
 </html>

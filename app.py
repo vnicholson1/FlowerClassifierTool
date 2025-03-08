@@ -85,7 +85,7 @@ def classify_top_x(image_features, x: int):
     for class_index, prob in sorted_probs.items():
         if i >= x:
             break
-        result.append((class_names[class_index], prob))
+        result.append((class_names[class_index], round(prob*100, 4)))
         i += 1
     return result
 
@@ -124,7 +124,7 @@ def classify():
 
 @app.route('/upload', methods=['GET'])
 def upload_training():
-    return render_template('upload.html')
+    return render_template('upload.html', class_counts=counts)
 
 
 @app.route('/training', methods=['POST'])
@@ -142,11 +142,11 @@ def upload_for_training():
             new_filename = generate_random_string() + '.' + filename.split('.')[-1]
             Path(path).mkdir(parents=True, exist_ok=True)
             file.save(os.path.join(path, new_filename))
-            return render_template('upload.html', status=f"Training upload successful for flower {request.form['classes']}")
+            return render_template('upload.html', status=f"Training upload successful for flower {request.form['classes']}", class_counts=counts)
         else:
-            return render_template('upload.html', status='Error uploading file, try again')
+            return render_template('upload.html', status='Error uploading file, try again', class_counts=counts)
     except Exception as e:
-        return render_template('upload.html', status=str(e))
+        return render_template('upload.html', status=str(e), class_counts=counts)
 
 
 @app.route('/validate', methods=['GET'])
@@ -157,28 +157,6 @@ def validate_training():
 @app.route('/classes', methods=['GET'])
 def view_classes():
     return render_template('classes.html')
-
-
-@app.route('/training', methods=['POST'])
-def upload_for_training():
-    file = request.files['upload']
-
-    try:
-        if file.filename == '':
-            return render_template('index.html', class_counts=counts, status='No file selected, try again')
-        
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-
-            path = os.path.join('data', 'user_input', request.form['classes'])
-            new_filename = generate_random_string() + '.' + filename.split('.')[-1]
-            Path(path).mkdir(parents=True, exist_ok=True)
-            file.save(os.path.join(path, new_filename))
-            return render_template('index.html', class_counts=counts, status=f"Training upload successful for flower {request.form['classes']}")
-        else:
-            return render_template('index.html', class_counts=counts, status='Error uploading file, try again')
-    except Exception as e:
-        return render_template('index.html', status=str(e))
 
 
 if __name__ == '__main__':
