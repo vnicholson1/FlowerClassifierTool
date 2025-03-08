@@ -32,6 +32,29 @@
             text-decoration: none;
             color: blue;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .result-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
     </style>
 </head>
 
@@ -46,34 +69,34 @@
     <div class="container">
         <h2>Flower Classifier</h2>
         <p>Upload an image to classify a flower.</p>
-        <input type="file" id="fileInput" accept="image/*">
+        <form action="/classify" method="POST" enctype="multipart/form-data">
+            <input type="file" name="upload">
+            <button type="submit">Upload</button>
+        </form>
+        {% if uploaded_file %}
+        <img id="preview" src="{{ uploaded_file }}">
+        {% else %}
         <img id="preview" src="" alt="" style="display:none;">
+        {% endif %}
         <h3>Top Predictions</h3>
-        <ul id="predictions"></ul>
+        <table id="predictionsTable">
+            <thead>
+                <tr>
+                    <th>Example Image</th>
+                    <th>Flower Name</th>
+                    <th>Confidence</th>
+                </tr>
+                {% for prediction in predictions %}
+                <tr>
+                    <td><img src="{{ prediction[2] }}" /></td>
+                    <td> {{ prediction[0] }} </td>
+                    <td> {{ prediction[1] }} </td>
+                </tr>
+                {% endfor %}
+            </thead>
+            <tbody id="predictionsBody"></tbody>
+        </table>
     </div>
-
-    <script>
-        document.getElementById('fileInput').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    document.getElementById('preview').src = e.target.result;
-                    document.getElementById('preview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-
-                // Simulated Predictions
-                document.getElementById('predictions').innerHTML = `
-                    <li>Rose (90%)</li>
-                    <li>Tulip (75%)</li>
-                    <li>Sunflower (60%)</li>
-                    <li>Daisy (45%)</li>
-                    <li>Orchid (30%)</li>
-                `;
-            }
-        });
-    </script>
 </body>
 
 </html>

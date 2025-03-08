@@ -81,22 +81,7 @@ def classify_top_x(image_features, x: int):
 # navigation pane
 @app.route('/', methods=['GET'])
 def main():
-    return render_template('index.html', class_counts=counts, status=None)
-
-
-@app.route('/upload', methods=['GET'])
-def upload_training():
-    return render_template('upload.html', class_counts=counts, status=None)
-
-
-@app.route('/validate', methods=['GET'])
-def validate_training():
-    return render_template('validate.html', class_counts=counts, status=None)
-
-
-@app.route('/classes', methods=['GET'])
-def view_classes():
-    return render_template('classes.html', class_counts=counts, status=None)
+    return render_template('index.html')
 
 
 @app.route('/classify', methods=['POST'])
@@ -118,11 +103,26 @@ def classify():
                     encoded_string = base64.b64encode(image_file.read())
                 top_x_with_images.append(top + ('data:image/png;base64, ' + encoded_string.decode('utf-8'),))
             sorted_by_second = sorted(top_x_with_images, key=lambda tup: tup[1], reverse=True)
-            return render_template('classify.html', uploaded_file=b64_encoded_upload, predictions=sorted_by_second)
+            return render_template('index.html', uploaded_file=b64_encoded_upload, predictions=sorted_by_second)
         else:
-            return render_template('index.html', class_counts=counts, status='Error uploading file, try again')
+            return render_template('index.html', status='Error uploading file, try again')
     except Exception as e:
         return render_template('index.html', status=str(e))
+
+
+@app.route('/upload', methods=['GET'])
+def upload_training():
+    return render_template('upload.html')
+
+
+@app.route('/validate', methods=['GET'])
+def validate_training():
+    return render_template('validate.html')
+
+
+@app.route('/classes', methods=['GET'])
+def view_classes():
+    return render_template('classes.html')
 
 
 @app.route('/training', methods=['POST'])
