@@ -59,6 +59,7 @@ svm_classifier.fit(X, Y)
 counts = dict()
 for i in training_data['labels']:
     counts[i] = counts.get(i, 0) + 1
+counts = dict(sorted(counts.items()))
 
 print('Initialisation Complete')
 ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'tiff', 'jfif'])
@@ -127,6 +128,18 @@ def upload_training():
     return render_template('upload.html', class_counts=counts)
 
 
+@app.route('/new_class', methods=['POST'])
+def create_new_class():
+    new_class = request.form['new_class'].lower()
+    global counts
+    if new_class not in counts:
+        counts[new_class] = 0
+        counts = dict(sorted(counts.items()))
+        return render_template('upload.html', class_counts=counts, status=f'{new_class} created successfully!')
+    else:
+        return render_template('upload.html', class_counts=counts, status=f'{new_class} already exists!')
+
+
 @app.route('/training', methods=['POST'])
 def upload_for_training():
     files = request.files.getlist('upload')
@@ -179,7 +192,9 @@ def validate_training_submittion():
     if approved:
         # bit of a crud but to stop people tampering with the filepath
         if file_path.startswith('data'):
-            os.rename(file_path, file_path.replace('user_input', 'train'))
+            new_path = file_path.replace('user_input', 'train')
+            os.makedirs(os.path.dirname(new_path), exist_ok=True)
+            os.rename(file_path, new_path)
     else:
         # bit of a crud but to stop people tampering with the filepath
         if file_path.startswith('data'):

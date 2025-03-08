@@ -53,6 +53,12 @@
         {% if status %}
         <p>{{ status }}</p>
         {% endif %}
+
+        <h3> Create new class </h3>
+        <form action="/new_class" method="POST" enctype="multipart/form-data">
+            <input type="text" id="new_class" name="new_class">
+            <button type="submit">Create new Class</button>
+        </form>
     </div>
 </body>
 
