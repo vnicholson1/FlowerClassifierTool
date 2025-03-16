@@ -7,59 +7,51 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 
 
-from PIL import Image, ImageFilter
+from PIL import Image
 import base64
 import json
 import numpy as np
 
-from utils import get_image_paths
+from create_data_points import run_train
+from utils import best_feature_extraction, get_image_paths
 from sklearn import svm
 
 app = Flask(__name__)
 
 
-def best_feature_extraction(pillow_image):
-    smaller_image = pillow_image.resize([4,4], Image.Resampling.LANCZOS)
-    tiny_image = np.array(smaller_image).flatten()
-    greyscale = pillow_image.convert('L')
-    edge_image = greyscale.filter(ImageFilter.SMOOTH_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.FIND_EDGES)
-    smaller_image = edge_image.resize([8,8], Image.Resampling.LANCZOS)
-    # edge_image.show()
-    # pillow_image.show()
-    flattened_edges = np.array(smaller_image).flatten()
-    edge_and_colours = np.concatenate((tiny_image, flattened_edges))
-    return edge_and_colours
+def initialise():
+    # Initialising the classifier
+    print('Loading training data')
+    with open('training_features.json') as f:
+        training_data = json.load(f)
+
+    print(f"Number of training data {len(training_data['training_data'])}")
+    class_name_and_paths = get_image_paths(folder_name='train')
+    class_names = list(class_name_and_paths.keys())
+    class_names = sorted(class_names)
+    X = np.array([np.array(xi) for xi in training_data['training_data']])
+    Y = np.array(training_data['labels'])
+
+    # print('Tuning the classifier')
+    # param_grid = {'C': [0.1, 1, 10, 100, 1000],  
+    #               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+    #               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+    # grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
+    # grid.fit(X, Y)
+    # svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 
 
-# Initialising the classifier
-print('Loading training data')
-with open('training_features.json') as f:
-    training_data = json.load(f)
+    print('Creating the classifier')
+    # print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
+    svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
+    svm_classifier.fit(X, Y)
+    counts = dict()
+    for i in training_data['labels']:
+        counts[i] = counts.get(i, 0) + 1
+    counts = dict(sorted(counts.items()))
+    return class_names, class_name_and_paths, counts, svm_classifier
 
-print(f"Number of training data {len(training_data['training_data'])}")
-class_name_and_paths = get_image_paths(folder_name='train')
-class_names = list(class_name_and_paths.keys())
-class_names = sorted(class_names)
-X = np.array([np.array(xi) for xi in training_data['training_data']])
-Y = np.array(training_data['labels'])
-
-# print('Tuning the classifier')
-# param_grid = {'C': [0.1, 1, 10, 100, 1000],  
-#               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-#               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
-# grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
-# grid.fit(X, Y)
-# svm_classifier = svm.SVC(**grid.best_params_, probability=True)
-
-
-print('Creating the classifier')
-# print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
-svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
-svm_classifier.fit(X, Y)
-counts = dict()
-for i in training_data['labels']:
-    counts[i] = counts.get(i, 0) + 1
-counts = dict(sorted(counts.items()))
+class_names, class_name_and_paths, counts, svm_classifier = initialise()
 
 print('Initialisation Complete')
 ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'tiff', 'jfif'])
@@ -221,6 +213,17 @@ def validate_training_submittion():
 @app.route('/classes', methods=['GET'])
 def view_classes():
     return render_template('classes.html', class_counts=counts)
+
+
+@app.route('/run_training', methods=['POST'])
+def run_training():
+    try:
+        run_train()
+        global class_names, class_name_and_paths, counts, svm_classifier
+        class_names, class_name_and_paths, counts, svm_classifier = initialise()
+        return render_template('classes.html', class_counts=counts, status="Training run successfully")
+    except Exception as e:
+        return render_template('classes.html', class_counts=counts, status=str(e))
 
 
 if __name__ == '__main__':

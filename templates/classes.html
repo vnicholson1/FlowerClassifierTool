@@ -66,6 +66,13 @@
             </tr>
             {% endfor %}
         </table>
+        <h2> Run Training </h2>
+        <form action="/run_training" method="POST" enctype="multipart/form-data">
+            <button type="submit">Training</button>
+        </form>
+        {% if status %}
+        <p> {{ status }}</p>
+        {% endif %}
     </div>
 </body>
 
