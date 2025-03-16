@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supported Classes</title>
+    <title>Flower Classifier</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,20 +17,10 @@
             margin: auto;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        th {
-            background-color: #f2f2f2;
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
         }
 
         nav {
@@ -42,6 +32,29 @@
             text-decoration: none;
             color: blue;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .result-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
     </style>
 </head>
 
@@ -52,20 +65,15 @@
         <a href="/validate">Validate Data</a>
         <a href="/classes">Supported Classes</a>
     </nav>
+
     <div class="container">
-        <h2>Supported Flower Classes</h2>
-        <table>
-            <tr>
-                <th>Class Name</th>
-                <th>Count</th>
-            </tr>
-            {% for class_name, count in class_counts.items() %}
-            <tr>
-                <td><a href="/class/{{ class_name }}">{{ class_name }}</a></td>
-                <td>{{ count }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <h2>Flower Classifier</h2>
+        <h3>Photos of {{ class_name }}</h3>
+        {% for image in images %}
+        <div>
+            <img src="{{ image }}" alt="Flower Image">
+        </div>
+        {% endfor %}
     </div>
 </body>
 

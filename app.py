@@ -163,6 +163,20 @@ def upload_for_training():
         return render_template('upload.html', status=str(e), class_counts=counts)
     
 
+@app.route('/class/<class_name>', methods=['GET'])
+def class_photos(class_name: str):
+    try:
+        file_paths = class_name_and_paths[class_name]
+        base64_images = []
+        for path in file_paths:
+            with open(path, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+            base64_images.append('data:image/png;base64, ' + encoded_string.decode('utf-8'))
+        return render_template('photos_of_classes.html', images=base64_images, class_name=class_name)
+    except Exception as e:
+        return render_template('upload.html', status=str(e), class_counts=counts)
+    
+
 
 def get_existing_images():
     folder = os.path.join("data", "user_input")
