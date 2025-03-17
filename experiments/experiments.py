@@ -40,8 +40,18 @@ def create_training_data(function, *params):
     return training_data
     
 
-def evaluate_knn(function, *params):
+def evaluate_both(function, *params):
     training_data = create_training_data(function, *params)
+    knn_results = evaluate_knn(function, training_data, *params)
+    print(knn_results)
+    svm_results = evaluate_svm(function, training_data, *params)
+    print(svm_results)
+    return knn_results, svm_results
+
+
+def evaluate_knn(function, training_data=None, *params):
+    if not training_data:
+        training_data = create_training_data(function, *params)
 
     print('Created image feature set')
 
@@ -53,8 +63,9 @@ def evaluate_knn(function, *params):
     return results
 
 
-def evaluate_svm(function, *params):
-    training_data = create_training_data(function, *params)
+def evaluate_svm(function, training_data=None, *params):
+    if not training_data:
+        training_data = create_training_data(function, *params)
     print('Created image feature set')
     x_list = []
     y_list = []
@@ -85,62 +96,10 @@ def evaluate_svm(function, *params):
     
 
 if __name__ == '__main__':
-    # knn
-    # tiny images
-    # for image_size in [(4,4), (8,8), (12,12), (16,16)]:
-    #     results = evaluate_knn(to_tiny_image, image_size)
-    #     print(results)
-    #     with open(f'results_knn_tiny_images_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
-    #         f.write(results)
-
-    # # edges
-    # for image_size in [(4,4), (8,8), (12,12), (16,16)]:
-    #     results = evaluate_knn(to_edges, image_size)
-    #     print(results)
-    #     with open(f'results_knn_edges_only_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
-    #         f.write(results)
-
-    # # both
-    # for tiny_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-    #     for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-    #         results = evaluate_knn(to_edge_and_colour, tiny_image_size, edge_image_size)
-    #         print(results)
-    #         with open(f'results_knn_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
-    #             f.write(results)
-
-    # for num_bins in [8, 12, 16, 20, 24]:
-    #     results = evaluate_knn(extract_rgb_histogram, num_bins)
-    #     print(results)
-    #     with open(f'results_knn_hist_{num_bins}.txt', 'w') as f:
-    #         f.write(results)
-
     for hog_bins in [8, 12, 16, 20, 24]:
         for color_hist_bins in [8, 12, 16, 20, 24]:
-            results = evaluate_knn(colour_hist_and_hog, hog_bins, color_hist_bins)
-            print(results)
+            knn_results, svm_results = evaluate_both(colour_hist_and_hog, hog_bins, color_hist_bins)
             with open(f'results_knn_hog_{hog_bins}_hist_{color_hist_bins}.txt', 'w') as f:
-                f.write(results)
-            results = evaluate_svm(colour_hist_and_hog, hog_bins, color_hist_bins)
-            print(results)
+                f.write(knn_results)
             with open(f'results_svm_hog_{hog_bins}_hist_{color_hist_bins}.txt', 'w') as f:
-                f.write(results)
-
-    # SVM
-    # both
-    # for tiny_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-    #     for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
-    #         results = evaluate_svm(to_edge_and_colour, tiny_image_size, edge_image_size)
-    #         print(results)
-    #         with open(f'results_svm_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
-    #             f.write(results)
-
-    # results = evaluate_svm(extract_glcm_and_colour_hist, 8, [1,2,3], [0, pi/4, pi/2, 3*pi/4])
-    # print(results)
-    # with open(f'results_svm_glcm_color_hist.txt', 'w') as f:
-    #     f.write(results)
-
-    # for bins in [8, 16, 24, 32, 40]:
-    #     results = evaluate_svm(extract_rgb_histogram, bins)
-    #     print(results)
-    #     with open(f'results_svm_color_hist_{bins}.txt', 'w') as f:
-    #         f.write(results)
+                f.write(svm_results)
