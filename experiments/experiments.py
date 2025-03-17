@@ -36,6 +36,7 @@ def create_training_data(function, *params):
         for path in paths:
             image_array = function(path, *params)
             training_data[class_name].append(image_array)
+        print(f'{class_name} features created')
     return training_data
     
 
@@ -68,7 +69,7 @@ def evaluate_svm(function, *params):
     #best -  {'C': 0.1, 'gamma': 1, 'kernel': 'rbf'}
     param_grid = {'C': [0.1, 1, 10, 100, 1000],  
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-              'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+              'kernel': ['linear', 'poly', 'rbf']}
     grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 3) 
     grid.fit(X, Y)
     # tuning code end
