@@ -7,10 +7,11 @@ from utils import calculate_balanced_accuracy
 class NearestNeighbourClassifier:
 
     k: int
+    use_weighted_votes: bool
     training_data: dict
     training_confusion_matrix: List[List]
 
-    def __init__(self, training_data: dict, k: Optional[int] = None):
+    def __init__(self, training_data: dict, k: Optional[int] = None, use_weighted: bool = False):
         # normalise the data before training
         normalised_data = {}
         for class_name, list_of_image_features in training_data.items(): 
@@ -19,6 +20,7 @@ class NearestNeighbourClassifier:
                 normalised_data[class_name].append((image_features-np.min(image_features))/(np.max(image_features)-np.min(image_features)))
 
         print('Normalised the data')
+        self.use_weighted_votes = use_weighted
 
         # Tune k with 50/50 CV split
         if k is None:
@@ -87,10 +89,10 @@ class NearestNeighbourClassifier:
                     best_classes.append(class_name)
 
         predictions_count = {}
-        for class_name in best_classes:
+        for i, class_name in enumerate(best_classes):
             if class_name not in predictions_count:
                 predictions_count[class_name] = 0
-            predictions_count[class_name] += 1
+            predictions_count[class_name] += 1 if self.use_weighted_votes is False else 1 / best_distances[i]
 
         return predictions_count
     
@@ -102,9 +104,10 @@ class NearestNeighbourClassifier:
         predictions_count = self._do_classification(input)
 
         prediction = max(predictions_count, key=predictions_count.get)
-        confidence = predictions_count[prediction] / self.k
+        total = sum(predictions_count.values())
+        confidence = predictions_count[prediction] / total
 
-        return max(predictions_count, key=predictions_count.get), confidence
+        return prediction, confidence
 
     def classify_top_x(self, input, x):
         predictions_count = self._do_classification(input)
