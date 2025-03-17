@@ -1,4 +1,4 @@
-from feature_extraction import extract_glcm_and_colour_hist, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
+from feature_extraction import colour_hist_and_lpb, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges, local_binary_pattern
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import pretty_confusion_matrix, get_image_paths
 import numpy as np
@@ -45,9 +45,11 @@ def evaluate_knn(function, *params):
     print('Created image feature set')
 
     # Create the classifier
-    knn = NearestNeighbourClassifier(training_data, k=5)
+    knn = NearestNeighbourClassifier(training_data, use_weighted=True)
     print('Created classifier')
-    return test_classifier(knn, function, *params)
+    results = test_classifier(knn, function, *params)
+    results += f"\n\nBest K={knn.k} Weighted={knn.use_weighted_votes}"
+    return results
 
 
 def evaluate_svm(function, *params):
@@ -120,19 +122,32 @@ if __name__ == '__main__':
     #     with open(f'results_knn_tiny_images_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
     #         f.write(results)
 
-    # edges
+    # # edges
     # for image_size in [(4,4), (8,8), (12,12), (16,16)]:
     #     results = evaluate_knn(to_edges, image_size)
     #     print(results)
-    #     with open(f'results_knn_tiny_images_with_edges_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
+    #     with open(f'results_knn_edges_only_{image_size[0]}_{image_size[1]}.txt', 'w') as f:
     #         f.write(results)
 
-    # both
-    for tiny_image_size in [(8,8)]:
-        for edge_image_size in [(16,16)]:
-            results = evaluate_knn(to_edge_and_colour, tiny_image_size, edge_image_size)
+    # # both
+    # for tiny_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+    #     for edge_image_size in [(4,4), (8,8), (12,12), (16,16)]:
+    #         results = evaluate_knn(to_edge_and_colour, tiny_image_size, edge_image_size)
+    #         print(results)
+    #         with open(f'results_knn_tiny_{tiny_image_size[0]}_{tiny_image_size[1]}_edge_{edge_image_size[0]}_{edge_image_size[1]}.txt', 'w') as f:
+    #             f.write(results)
+
+    # for num_bins in [8, 12, 16, 20, 24]:
+    #     results = evaluate_knn(extract_rgb_histogram, num_bins)
+    #     print(results)
+    #     with open(f'results_knn_hist_{num_bins}.txt', 'w') as f:
+    #         f.write(results)
+
+    for lbp_bins in [8, 12, 16, 20, 24]:
+        for color_hist_bins in [8, 12, 16, 20, 24]:
+            results = evaluate_knn(colour_hist_and_lpb, lbp_bins, color_hist_bins)
             print(results)
-            with open(f'results_knn.txt', 'w') as f:
+            with open(f'results_knn_lpb_{lbp_bins}_hist_{color_hist_bins}.txt', 'w') as f:
                 f.write(results)
 
     # SVM
@@ -149,8 +164,8 @@ if __name__ == '__main__':
     # with open(f'results_svm_glcm_color_hist.txt', 'w') as f:
     #     f.write(results)
 
-    for bins in [8, 16, 24, 32, 40]:
-        results = evaluate_svm(extract_rgb_histogram, bins)
-        print(results)
-        with open(f'results_svm_color_hist_{bins}.txt', 'w') as f:
-            f.write(results)
+    # for bins in [8, 16, 24, 32, 40]:
+    #     results = evaluate_svm(extract_rgb_histogram, bins)
+    #     print(results)
+    #     with open(f'results_svm_color_hist_{bins}.txt', 'w') as f:
+    #         f.write(results)

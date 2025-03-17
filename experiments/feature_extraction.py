@@ -48,73 +48,39 @@ def extract_rgb_histogram(image_path, bins=8):
     return np.concatenate([r_hist, g_hist, b_hist])
 
 
-# Function to compute GLCM (Gray-Level Co-occurrence Matrix) manually
-def compute_glcm(img_gray, distance=1, angle=0):
-    # Convert image to 0-255 range (if it's not)
-    img_gray = (img_gray * 255).astype(int)
-    rows, cols = img_gray.shape
-    
-    # Get the displacement for the given angle and distance
-    dx = int(round(distance * cos(angle)))
-    dy = int(round(distance * sin(angle)))
-    
-    # Initialize the GLCM matrix
-    glcm = np.zeros((256, 256), dtype=int)
-    
-    # Iterate through the image to calculate co-occurrences, making sure indices are valid
-    for i in range(rows):
-        for j in range(cols):
-            # Check bounds for neighbor pixel
-            neighbor_i = i + dy
-            neighbor_j = j + dx
-            
-            if 0 <= neighbor_i < rows and 0 <= neighbor_j < cols:
-                current_pixel = img_gray[i, j]
-                neighbor_pixel = img_gray[neighbor_i, neighbor_j]
-                glcm[current_pixel, neighbor_pixel] += 1
-    
-    # Normalize the GLCM
-    glcm = glcm / glcm.sum()
-    return glcm
+def local_binary_pattern(image_path, num_bins, radius):
+    def get_circular_lbp(matrix, cx, cy, radius):
+        rows, cols = len(matrix), len(matrix[0])
+        center_value = matrix[cx][cy]
+        binary_pattern = []
 
-
-# Function to extract GLCM properties (contrast, correlation, energy, homogeneity)
-def extract_glcm_features(image_path, distances=[1], angles=[0]):
+        # Get circular neighbors
+        for x in range(cx - radius, cx + radius + 1):
+            for y in range(cy - radius, cy + radius + 1):
+                if 0 <= x < rows and 0 <= y < cols:  # Ensure within bounds
+                    if np.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= radius:  # Circle equation
+                        if not (x == cx and y == cy):  # Exclude center pixel
+                            binary_pattern.append(1 if matrix[x][y] >= center_value else 0)
+        # Convert binary list to integer (base 2)
+        lbp_value = int("".join(map(str, binary_pattern)), 2)
+        return lbp_value
+    
     img = Image.open(image_path)
-    img_gray = np.array(img.convert('L')) / 255.0  # Convert to grayscale and normalize
-    
-    contrast_list = []
-    correlation_list = []
-    energy_list = []
-    homogeneity_list = []
-    
-    for distance in distances:
-        for angle in angles:
-            glcm = compute_glcm(img_gray, distance, angle)
-            
-            # Contrast
-            contrast = np.sum((np.indices(glcm.shape)[0] - np.indices(glcm.shape)[1])**2 * glcm)
-            contrast_list.append(contrast)
-            
-            # Correlation
-            row_indices, col_indices = np.indices(glcm.shape)
-            mean_i = np.sum(row_indices * glcm.sum(axis=1))
-            mean_j = np.sum(col_indices * glcm.sum(axis=0))
-            correlation = np.sum(((row_indices - mean_i) * (col_indices - mean_j)) * glcm) / np.sqrt(np.sum((row_indices - mean_i)**2) * np.sum((col_indices - mean_j)**2))
-            correlation_list.append(correlation)
-            
-            # Energy
-            energy = np.sum(glcm**2)
-            energy_list.append(energy)
-            
-            # Homogeneity
-            homogeneity = np.sum(glcm / (1 + np.abs(np.indices(glcm.shape)[0] - np.indices(glcm.shape)[1])))
-            homogeneity_list.append(homogeneity)
-    
-    return np.concatenate([contrast_list, correlation_list, energy_list, homogeneity_list])
+    greyscale = img.convert('L')
+    smaller_image = greyscale.resize((128, 128), Image.Resampling.LANCZOS)
+    img_lbp = np.zeros((128, 128)) 
+    for i in range(0, 128): 
+        for j in range(0, 128): 
+            lpb_value = get_circular_lbp(np.array(smaller_image), i, j, radius)
+            img_lbp[i, j] = lpb_value
 
-# Function to extract combined features (RGB + GLCM)
-def extract_glcm_and_colour_hist(image_path, bins=8, distances=[1], angles=[0]):
-    rgb_hist = extract_rgb_histogram(image_path, bins)
-    glcm_features = extract_glcm_features(image_path, distances, angles)
-    return np.concatenate([rgb_hist, glcm_features])
+    hist = np.histogram(img_lbp.flatten(), num_bins)[0]
+    hist = hist / hist.sum()
+    return hist
+
+
+def colour_hist_and_lpb(image_path, lpb_bins, color_hist_bins):
+    hist = extract_rgb_histogram(image_path, color_hist_bins)
+    lbp = local_binary_pattern(image_path, lpb_bins, radius=1)
+    result = np.concatenate([lbp, hist])
+    return result
