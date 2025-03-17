@@ -1,4 +1,4 @@
-from feature_extraction import colour_hist_and_hog, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges, local_binary_pattern
+from feature_extraction import colour_hist_and_hog, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import pretty_confusion_matrix, get_image_paths
 import numpy as np
