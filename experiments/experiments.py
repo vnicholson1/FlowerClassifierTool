@@ -1,6 +1,6 @@
-from experiments.feature_extraction import extract_glcm_and_colour_hist, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
-from experiments.nearest_neighbour import NearestNeighbourClassifier
-from utils import get_image_paths, pretty_confusion_matrix
+from feature_extraction import extract_glcm_and_colour_hist, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
+from nearest_neighbour import NearestNeighbourClassifier
+from utils import pretty_confusion_matrix, get_image_paths
 import numpy as np
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV 
@@ -128,12 +128,12 @@ if __name__ == '__main__':
     #         f.write(results)
 
     # both
-    # for tiny_image_size in [(8,8)]:
-    #     for edge_image_size in [(16,16)]:
-    #         results = evaluate_knn(to_edge_and_colour, tiny_image_size, edge_image_size)
-    #         print(results)
-    #         with open(f'results_knn.txt', 'w') as f:
-    #             f.write(results)
+    for tiny_image_size in [(8,8)]:
+        for edge_image_size in [(16,16)]:
+            results = evaluate_knn(to_edge_and_colour, tiny_image_size, edge_image_size)
+            print(results)
+            with open(f'results_knn.txt', 'w') as f:
+                f.write(results)
 
     # SVM
     # both
