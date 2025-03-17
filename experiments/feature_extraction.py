@@ -1,7 +1,9 @@
 from PIL import Image, ImageFilter
 import numpy as np
 from PIL import Image
-from math import cos, sin, pi, sqrt
+from scipy.ndimage import sobel
+from sklearn.preprocessing import normalize
+
 
 
 def to_tiny_image(image_path, image_size):
@@ -48,39 +50,30 @@ def extract_rgb_histogram(image_path, bins=8):
     return np.concatenate([r_hist, g_hist, b_hist])
 
 
-def local_binary_pattern(image_path, num_bins, radius):
-    def get_circular_lbp(matrix, cx, cy, radius):
-        rows, cols = len(matrix), len(matrix[0])
-        center_value = matrix[cx][cy]
-        binary_pattern = []
+def extract_hog_like_features(image_path, num_bins):
+    """Extracts HOG-like gradient features from an image."""
+    image = Image.open(image_path).convert("L")  # Convert to grayscale
+    image = np.array(image, dtype=np.float32)
 
-        # Get circular neighbors
-        for x in range(cx - radius, cx + radius + 1):
-            for y in range(cy - radius, cy + radius + 1):
-                if 0 <= x < rows and 0 <= y < cols:  # Ensure within bounds
-                    if np.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= radius:  # Circle equation
-                        if not (x == cx and y == cy):  # Exclude center pixel
-                            binary_pattern.append(1 if matrix[x][y] >= center_value else 0)
-        # Convert binary list to integer (base 2)
-        lbp_value = int("".join(map(str, binary_pattern)), 2)
-        return lbp_value
-    
-    img = Image.open(image_path)
-    greyscale = img.convert('L')
-    smaller_image = greyscale.resize((128, 128), Image.Resampling.LANCZOS)
-    img_lbp = np.zeros((128, 128)) 
-    for i in range(0, 128): 
-        for j in range(0, 128): 
-            lpb_value = get_circular_lbp(np.array(smaller_image), i, j, radius)
-            img_lbp[i, j] = lpb_value
+    # Compute horizontal and vertical gradients
+    gx = sobel(image, axis=1)  # Sobel filter in X direction
+    gy = sobel(image, axis=0)  # Sobel filter in Y direction
 
-    hist = np.histogram(img_lbp.flatten(), num_bins)[0]
-    hist = hist / hist.sum()
+    # Compute gradient magnitude and orientation
+    magnitude = np.sqrt(gx**2 + gy**2)
+    orientation = np.arctan2(gy, gx)
+
+    # Histogram of oriented gradients (8 bins)
+    hist, _ = np.histogram(orientation, bins=num_bins, range=(-np.pi, np.pi), weights=magnitude)
+
+    # Normalize histogram
+    hist = normalize(hist.reshape(1, -1))[0]
+
     return hist
 
 
-def colour_hist_and_lpb(image_path, lpb_bins, color_hist_bins):
+def colour_hist_and_hog(image_path, color_hist_bins, hog_bins):
     hist = extract_rgb_histogram(image_path, color_hist_bins)
-    lbp = local_binary_pattern(image_path, lpb_bins, radius=1)
-    result = np.concatenate([lbp, hist])
+    hog = extract_hog_like_features(image_path, hog_bins)
+    result = np.concatenate([hist, hog])
     return result

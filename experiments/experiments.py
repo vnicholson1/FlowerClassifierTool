@@ -1,4 +1,4 @@
-from feature_extraction import colour_hist_and_lpb, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges, local_binary_pattern
+from feature_extraction import colour_hist_and_hog, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges, local_binary_pattern
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import pretty_confusion_matrix, get_image_paths
 import numpy as np
@@ -69,36 +69,6 @@ def evaluate_svm(function, *params):
     param_grid = {'C': [0.1, 1, 10, 100, 1000],  
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
-    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
-    grid.fit(X, Y)
-    # tuning code end
-    svm_classifier = svm.SVC(**grid.best_params_)
-    svm_classifier.fit(X, Y)
-    print('Tuned classifier')
-    results = test_classifier(svm_classifier, function, *params)
-    results += f"\n\nC={grid.best_params_['C']}"
-    results += f"\ngamma={grid.best_params_['gamma']}"
-    results += f"\nkernel={grid.best_params_['kernel']}"
-    return results
-
-
-def evaluate_nn(function, *params):
-    training_data = create_training_data(function, *params)
-    print('Created image feature set')
-    x_list = []
-    y_list = []
-    for class_name, list_of_feats in training_data.items():
-        for feats in list_of_feats:
-            x_list.append(feats)
-            y_list.append(class_name)
-    X = np.vstack(x_list)
-    Y = np.asarray(y_list)
-    print('Convert to numpy arrays')
-    # tuning code
-    #best -  {'C': 0.1, 'gamma': 1, 'kernel': 'rbf'}
-    param_grid = {'C': [0.1, 1, 10, 100, 1000],  
-              'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-              'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
     grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 3) 
     grid.fit(X, Y)
     # tuning code end
@@ -143,11 +113,15 @@ if __name__ == '__main__':
     #     with open(f'results_knn_hist_{num_bins}.txt', 'w') as f:
     #         f.write(results)
 
-    for lbp_bins in [8, 12, 16, 20, 24]:
+    for hog_bins in [8, 12, 16, 20, 24]:
         for color_hist_bins in [8, 12, 16, 20, 24]:
-            results = evaluate_knn(colour_hist_and_lpb, lbp_bins, color_hist_bins)
+            results = evaluate_knn(colour_hist_and_hog, hog_bins, color_hist_bins)
             print(results)
-            with open(f'results_knn_lpb_{lbp_bins}_hist_{color_hist_bins}.txt', 'w') as f:
+            with open(f'results_knn_hog_{hog_bins}_hist_{color_hist_bins}.txt', 'w') as f:
+                f.write(results)
+            results = evaluate_svm(colour_hist_and_hog, hog_bins, color_hist_bins)
+            print(results)
+            with open(f'results_svm_hog_{hog_bins}_hist_{color_hist_bins}.txt', 'w') as f:
                 f.write(results)
 
     # SVM
