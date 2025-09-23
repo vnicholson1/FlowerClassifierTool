@@ -51,4 +51,5 @@ def get_image_paths(folder_name: str):
             if os.path.isfile(os.path.join(directory, image_path)):
                 class_names_and_paths[class_name].append(os.path.join(directory, image_path))
     del class_names_and_paths[folder_name]
-    return class_names_and_paths
+    sorted_classes = {k: class_names_and_paths[k] for k in sorted(class_names_and_paths.keys())}
+    return sorted_classes

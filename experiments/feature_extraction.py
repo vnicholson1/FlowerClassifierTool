@@ -1,8 +1,9 @@
 from PIL import Image, ImageFilter
 import numpy as np
 from PIL import Image
-from scipy.ndimage import sobel
-from sklearn.preprocessing import normalize
+
+# For LBP
+from skimage.feature import local_binary_pattern
 
 
 
@@ -50,30 +51,29 @@ def extract_rgb_histogram(image_path, bins=8):
     return np.concatenate([r_hist, g_hist, b_hist])
 
 
-def extract_hog_like_features(image_path, num_bins):
-    """Extracts HOG-like gradient features from an image."""
-    image = Image.open(image_path).convert("L")  # Convert to grayscale
-    image = np.array(image, dtype=np.float32)
-
-    # Compute horizontal and vertical gradients
-    gx = sobel(image, axis=1)  # Sobel filter in X direction
-    gy = sobel(image, axis=0)  # Sobel filter in Y direction
-
-    # Compute gradient magnitude and orientation
-    magnitude = np.sqrt(gx**2 + gy**2)
-    orientation = np.arctan2(gy, gx)
-
-    # Histogram of oriented gradients (8 bins)
-    hist, _ = np.histogram(orientation, bins=num_bins, range=(-np.pi, np.pi), weights=magnitude)
-
-    # Normalize histogram
-    hist = normalize(hist.reshape(1, -1))[0]
-
+# 1. Grayscale Intensity Histogram
+def extract_grayscale_histogram(image_path, bins=16):
+    img = Image.open(image_path).convert('L')
+    arr = np.array(img)
+    hist, _ = np.histogram(arr, bins=bins, range=(0, 256))
+    hist = hist / hist.sum()
     return hist
 
+# 2. Mean and Standard Deviation for each color channel
+def extract_mean_std(image_path):
+    img = Image.open(image_path)
+    arr = np.array(img)
+    if arr.ndim == 2:  # grayscale
+        arr = arr[:, :, np.newaxis]
+    means = arr.mean(axis=(0, 1))
+    stds = arr.std(axis=(0, 1))
+    return np.concatenate([means, stds])
 
-def colour_hist_and_hog(image_path, color_hist_bins, hog_bins):
-    hist = extract_rgb_histogram(image_path, color_hist_bins)
-    hog = extract_hog_like_features(image_path, hog_bins)
-    result = np.concatenate([hist, hog])
-    return result
+# 3. Local Binary Pattern (LBP) Texture Histogram
+def extract_lbp_histogram(image_path, P=8, R=1, bins=10):
+    img = Image.open(image_path).convert('L')
+    arr = np.array(img)
+    lbp = local_binary_pattern(arr, P, R, method='uniform')
+    hist, _ = np.histogram(lbp, bins=bins, range=(0, P + 2))
+    hist = hist / hist.sum()
+    return hist

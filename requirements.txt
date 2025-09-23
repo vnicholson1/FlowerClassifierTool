@@ -2,3 +2,4 @@ numpy
 Flask
 scikit-learn
 pillow
+scikit-image

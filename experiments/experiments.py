@@ -1,10 +1,12 @@
-from feature_extraction import colour_hist_and_hog, extract_rgb_histogram, to_edge_and_colour, to_tiny_image, to_edges
+from feature_extraction import (
+    extract_rgb_histogram, to_tiny_image,
+    extract_grayscale_histogram, extract_mean_std, extract_lbp_histogram
+)
 from nearest_neighbour import NearestNeighbourClassifier
 from utils import pretty_confusion_matrix, get_image_paths
 import numpy as np
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV 
-from math import pi
 
 
 def test_classifier(classifier, function, *params):
@@ -23,7 +25,7 @@ def test_classifier(classifier, function, *params):
         for image_features in list_of_image_features:
             predicted = classifier.predict(image_features.reshape(1,-1))[0]
             confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
-    results = pretty_confusion_matrix(confusion_matrix, list(class_name_and_paths.keys()))
+    results = pretty_confusion_matrix(confusion_matrix, class_names)
     return results
 
 
@@ -31,12 +33,12 @@ def create_training_data(function, *params):
     # Create feature set
     class_name_and_paths = get_image_paths(folder_name='train')
     training_data = {}
-    for class_name, paths in class_name_and_paths.items():
+    for class_name in sorted(class_name_and_paths.keys()):
+        paths = class_name_and_paths[class_name]
         training_data[class_name] = []
         for path in paths:
             image_array = function(path, *params)
             training_data[class_name].append(image_array)
-        print(f'{class_name} features created')
     return training_data
     
 
@@ -78,10 +80,10 @@ def evaluate_svm(function, training_data=None, *params):
     print('Convert to numpy arrays')
     # tuning code
     #best -  {'C': 0.1, 'gamma': 1, 'kernel': 'rbf'}
-    param_grid = {'C': [0.1, 1, 10, 100, 1000],  
-              'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+    param_grid = {'C': [0.1, 1, 10],  
+              'gamma': [1, 0.1, 0.01, 0.001], 
               'kernel': ['linear', 'poly', 'rbf']}
-    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 3) 
+    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 1) 
     grid.fit(X, Y)
     # tuning code end
     svm_classifier = svm.SVC(**grid.best_params_)
@@ -96,6 +98,45 @@ def evaluate_svm(function, training_data=None, *params):
     
 
 if __name__ == '__main__':
-    svm_results = evaluate_svm(to_tiny_image, None, (8, 8))
-    with open(f'results.txt', 'w') as f:
+    # # Color histogram experiments with different bin sizes
+    # for bins in [8, 16, 32]:
+    #     svm_results = evaluate_svm(lambda path: extract_rgb_histogram(path, bins=bins))
+    #     with open(f'results_color_hist_{bins}.txt', 'w') as f:
+    #         f.write(svm_results)
+    #     print(svm_results)
+    #     print('----------------------------------')
+    # # Tiny image experiments
+    # for tiny_image_size in [(4,4), (8, 8), (16, 16)]:
+    #     svm_results = evaluate_svm(to_tiny_image, None, tiny_image_size)
+    #     with open(f'results_tiny_image_{tiny_image_size[0]}_{tiny_image_size[1]}.txt', 'w') as f:
+    #         f.write(svm_results)
+    #     print(svm_results)
+    #     print('----------------------------------')
+
+    # Grayscale histogram experiments with different bin sizes
+    for bins in [8, 16, 32]:
+        svm_results = evaluate_svm(lambda path: extract_grayscale_histogram(path, bins=bins))
+        with open(f'experiments/results/results_grayscale_hist_{bins}.txt', 'w') as f:
+            f.write(svm_results)
+        print(svm_results)
+        print('----------------------------------')
+
+    # Mean and std experiment (no params)
+    svm_results = evaluate_svm(extract_mean_std)
+    with open('experiments/results/results_mean_std.txt', 'w') as f:
         f.write(svm_results)
+    print(svm_results)
+    print('----------------------------------')
+
+    # LBP histogram experiments with different params
+    lbp_param_sets = [
+        (8, 1, 10),
+        (16, 2, 18),
+        (24, 3, 26)
+    ]
+    for P, R, bins in lbp_param_sets:
+        svm_results = evaluate_svm(lambda path: extract_lbp_histogram(path, P=P, R=R, bins=bins))
+        with open(f'experiments/results/results_lbp_hist_{P}_{R}_{bins}.txt', 'w') as f:
+            f.write(svm_results)
+        print(svm_results)
+        print('----------------------------------')
