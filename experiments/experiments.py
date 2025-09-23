@@ -9,7 +9,7 @@ from math import pi
 
 def test_classifier(classifier, function, *params):
     # Create the test set
-    class_name_and_paths = get_image_paths(folder_name='reduced_test')
+    class_name_and_paths = get_image_paths(folder_name='test')
     class_names = list(class_name_and_paths.keys())
     test_data = {}
     for class_name, paths in class_name_and_paths.items():
@@ -29,7 +29,7 @@ def test_classifier(classifier, function, *params):
 
 def create_training_data(function, *params):
     # Create feature set
-    class_name_and_paths = get_image_paths(folder_name='reduced_train')
+    class_name_and_paths = get_image_paths(folder_name='train')
     training_data = {}
     for class_name, paths in class_name_and_paths.items():
         training_data[class_name] = []

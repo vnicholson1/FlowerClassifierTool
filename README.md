@@ -1,5 +1,7 @@
 # FlowerClassiferTool
 
+Data has come from - https://www.robots.ox.ac.uk/~vgg/data/flowers/102/ provided by the Oxford University.
+
 A simple tool using kNN and tiny images for flower classifiction to evaluate their effectiveness.
 
 Feature extraction methods (reduced dataset):
