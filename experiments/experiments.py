@@ -96,10 +96,6 @@ def evaluate_svm(function, training_data=None, *params):
     
 
 if __name__ == '__main__':
-    for hog_bins in [8, 12, 16, 20, 24]:
-        for color_hist_bins in [8, 12, 16, 20, 24]:
-            knn_results, svm_results = evaluate_both(colour_hist_and_hog, hog_bins, color_hist_bins)
-            with open(f'results_knn_hog_{hog_bins}_hist_{color_hist_bins}.txt', 'w') as f:
-                f.write(knn_results)
-            with open(f'results_svm_hog_{hog_bins}_hist_{color_hist_bins}.txt', 'w') as f:
-                f.write(svm_results)
+    svm_results = evaluate_svm(to_tiny_image, None, (8, 8))
+    with open(f'results.txt', 'w') as f:
+        f.write(svm_results)
