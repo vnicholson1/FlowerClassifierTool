@@ -5,13 +5,15 @@ This script extracts features from images, builds a visual vocabulary, and repre
 """
 
 import os
+from typing import Literal
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
 from tqdm import tqdm
-# SVM classification
 from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report, accuracy_score
 import json
 
@@ -35,12 +37,24 @@ def get_image_paths(dataset_path):
     return image_paths, labels
 
 
-def extract_features(image_paths, nfeatures=500):
-    # feature_extractor = cv2.SIFT_create(nfeatures=nfeatures)
-    feature_extractor = cv2.ORB_create(nfeatures=nfeatures)
+def extract_features(image_paths, nfeatures=500, features: Literal['orb', 'sift', 'brisk', 'akaze', 'kaze'] = 'orb'):
+    # Select feature extractor based on 'features' argument
+    if features == 'orb':
+        feature_extractor = cv2.ORB_create(nfeatures=nfeatures)
+    elif features == 'sift':
+        feature_extractor = cv2.SIFT_create(nfeatures=nfeatures)
+    elif features == 'brisk':
+        feature_extractor = cv2.BRISK_create()
+    elif features == 'akaze':
+        feature_extractor = cv2.AKAZE_create()
+    elif features == 'kaze':
+        feature_extractor = cv2.KAZE_create()
+    else:
+        raise ValueError(f"Unknown feature type: {features}")
+
     all_descriptors = []
     descriptors_list = []
-    for path in tqdm(image_paths, desc=f'Extracting features (nfeatures={nfeatures})'):
+    for path in tqdm(image_paths, desc=f'Extracting features ({features}, nfeatures={nfeatures})'):
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         if img is None:
             descriptors_list.append(None)
@@ -75,10 +89,39 @@ def compute_bovw_histograms(descriptors_list, kmeans, num_clusters=NUM_CLUSTERS)
     return np.array(histograms)
 
 
+def classify(X_train, X_test, y_train, classifier: Literal['svm', 'knn', 'decision']):
 
-def run_bovw_svm():
-    cluster_options = [200, 400, 600, 800, 1000]
-    nfeatures_options = [2000, 4000, 6000, 8000, 10000]
+    if classifier == 'svm':
+        param_grid = {'C': [0.1, 1, 10],  
+                        'gamma': [1, 0.1, 0.01, 0.001], 
+                        'kernel': ['linear', 'poly', 'rbf']}
+        grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=1)
+        grid.fit(X_train, y_train)
+        svm_classifier = SVC(**grid.best_params_)
+        svm_classifier.fit(X_train, y_train)
+        y_pred = svm_classifier.predict(X_test)
+    elif classifier == 'knn':
+        param_grid = {'n_neighbors': [3, 5, 7, 9, 11, 13, 15]}
+        grid = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, verbose=1)
+        grid.fit(X_train, y_train)
+        knn = KNeighborsClassifier(**grid.best_params_)
+        knn.fit(X_train, y_train)
+        y_pred = knn.predict(X_test)
+    elif classifier == 'decision':
+        param_grid = {'max_depth': [None, 10, 20, 30], 'min_samples_split': [2, 5, 10]}
+        grid = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, refit=True, verbose=1)
+        grid.fit(X_train, y_train)
+        dt = DecisionTreeClassifier(**grid.best_params_, random_state=42)
+        dt.fit(X_train, y_train)
+        y_pred = dt.predict(X_test)
+    else:
+        raise ValueError(f"Unknown classifier: {classifier}")
+    return y_pred
+
+
+def run_bovw(classifier, features):
+    cluster_options = [100]
+    nfeatures_options = [1000]
     results = []
     train_image_paths, train_labels = get_image_paths(TRAIN_PATH)
     test_image_paths, test_labels = get_image_paths(TEST_PATH)
@@ -89,25 +132,16 @@ def run_bovw_svm():
         for nfeatures in nfeatures_options:
             print(f"\nTesting NUM_CLUSTERS={num_clusters}, nfeatures={nfeatures}")
             # Extract features
-            all_descriptors, train_descriptors_list = extract_features(train_image_paths, nfeatures=nfeatures)
+            all_descriptors, train_descriptors_list = extract_features(train_image_paths, nfeatures=nfeatures, features=features)
             if all_descriptors.size == 0:
                 print("No descriptors found in training set. Skipping.")
                 continue
             kmeans = build_vocabulary(all_descriptors, num_clusters)
             X_train = compute_bovw_histograms(train_descriptors_list, kmeans, num_clusters)
             # Test features
-            _, test_descriptors_list = extract_features(test_image_paths, nfeatures=nfeatures)
+            _, test_descriptors_list = extract_features(test_image_paths, nfeatures=nfeatures, features=features)
             X_test = compute_bovw_histograms(test_descriptors_list, kmeans, num_clusters)
-
-            # SVM training with grid search
-            param_grid = {'C': [0.1, 1, 10],  
-                         'gamma': [1, 0.1, 0.01, 0.001], 
-                         'kernel': ['linear', 'poly', 'rbf']}
-            grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=0)
-            grid.fit(X_train, y_train)
-            svm_classifier = SVC(**grid.best_params_)
-            svm_classifier.fit(X_train, y_train)
-            y_pred = svm_classifier.predict(X_test)
+            y_pred = classify(X_train, X_test, y_train, classifier=classifier)
             acc = accuracy_score(y_test, y_pred)
             report = classification_report(y_test, y_pred, output_dict=True)
             print(f"Accuracy: {acc:.4f}")
@@ -115,13 +149,16 @@ def run_bovw_svm():
                 'num_clusters': num_clusters,
                 'nfeatures': nfeatures,
                 'accuracy': acc,
-                # 'best_params': grid.best_params_,
-                # 'classification_report': report
+                'classification_report': report
             })
     # Save results to file
-    with open('bovw_gridsearch_results_orb_2.json', 'w') as f:
+    file_name = f'bovw_results_{classifier}_{features}.json'
+    with open(file_name, 'w') as f:
         json.dump(results, f, indent=2)
-    print("All results saved to bovw_gridsearch_results_orb_2.json")
+    print(f"All results saved to {file_name}")
+
 
 if __name__ == '__main__':
-    run_bovw_svm()
+    for feature in ['sift','kaze']:
+        for classifier in ['knn', 'svm', 'decision']:
+            run_bovw(classifier=classifier, features=feature)
