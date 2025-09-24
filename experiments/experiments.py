@@ -83,7 +83,7 @@ def evaluate_svm(function, training_data=None, *params):
     param_grid = {'C': [0.1, 1, 10],  
               'gamma': [1, 0.1, 0.01, 0.001], 
               'kernel': ['linear', 'poly', 'rbf']}
-    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 1) 
+    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 2) 
     grid.fit(X, Y)
     # tuning code end
     svm_classifier = svm.SVC(**grid.best_params_)
@@ -114,12 +114,12 @@ if __name__ == '__main__':
     #     print('----------------------------------')
 
     # Grayscale histogram experiments with different bin sizes
-    for bins in [8, 16, 32]:
-        svm_results = evaluate_svm(lambda path: extract_grayscale_histogram(path, bins=bins))
-        with open(f'experiments/results/results_grayscale_hist_{bins}.txt', 'w') as f:
-            f.write(svm_results)
-        print(svm_results)
-        print('----------------------------------')
+    # for bins in [8, 16, 32]:
+    #     svm_results = evaluate_svm(lambda path: extract_grayscale_histogram(path, bins=bins))
+    #     with open(f'experiments/results/results_grayscale_hist_{bins}.txt', 'w') as f:
+    #         f.write(svm_results)
+    #     print(svm_results)
+    #     print('----------------------------------')
 
     # Mean and std experiment (no params)
     svm_results = evaluate_svm(extract_mean_std)
