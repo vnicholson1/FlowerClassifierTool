@@ -3,3 +3,5 @@ Flask
 scikit-learn
 pillow
 scikit-image
+tqdm
+opencv-python

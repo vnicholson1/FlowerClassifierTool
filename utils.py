@@ -1,21 +1,27 @@
 import os
 from os import listdir
 from os.path import isfile, join
-from PIL import Image, ImageFilter
 import numpy as np
+import cv2
+
+from create_data_points import NUM_FEATURES, NUM_CLUSTERS
 
 
-def best_feature_extraction(pillow_image):
-    smaller_image = pillow_image.resize([4,4], Image.Resampling.LANCZOS)
-    tiny_image = np.array(smaller_image).flatten()
-    greyscale = pillow_image.convert('L')
-    edge_image = greyscale.filter(ImageFilter.SMOOTH_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.FIND_EDGES)
-    smaller_image = edge_image.resize([8,8], Image.Resampling.LANCZOS)
-    # edge_image.show()
-    # pillow_image.show()
-    flattened_edges = np.array(smaller_image).flatten()
-    edge_and_colours = np.concatenate((tiny_image, flattened_edges))
-    return edge_and_colours
+def best_feature_extraction(pillow_image, kmeans):
+    """
+    Extract BoVW histogram for a single image using SIFT and a pre-trained KMeans vocabulary.
+    Pass a preloaded kmeans model for efficiency, or leave as None to load from disk.
+    """
+    # Convert PIL image to grayscale numpy array
+    img = np.array(pillow_image.convert('L'))
+    sift = cv2.SIFT_create(nfeatures=NUM_FEATURES)
+    _, descriptors = sift.detectAndCompute(img, None)
+    if descriptors is None:
+        hist = np.zeros(NUM_CLUSTERS)
+    else:
+        words = kmeans.predict(descriptors)
+        hist, _ = np.histogram(words, bins=np.arange(NUM_CLUSTERS+1))
+    return hist
 
 
 def get_image_paths(folder_name: str):

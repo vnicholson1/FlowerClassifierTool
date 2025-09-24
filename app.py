@@ -2,7 +2,7 @@ import os
 import random
 import string
 from flask import Flask, render_template, request
-from sklearn.model_selection import GridSearchCV
+import joblib
 from werkzeug.utils import secure_filename
 from pathlib import Path
 
@@ -18,6 +18,7 @@ from sklearn import svm
 
 app = Flask(__name__)
 
+kmeans = joblib.load('bovw_kmeans.pkl')
 
 def initialise():
     # Initialising the classifier
@@ -32,18 +33,20 @@ def initialise():
     X = np.array([np.array(xi) for xi in training_data['training_data']])
     Y = np.array(training_data['labels'])
 
+    # from sklearn.model_selection import GridSearchCV
     # print('Tuning the classifier')
-    # param_grid = {'C': [0.1, 1, 10, 100, 1000],  
-    #               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-    #               'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
-    # grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 0) 
+    # param_grid = {'C': [0.1, 1, 10],  
+    #                     'gamma': [1, 0.1, 0.01, 0.001], 
+    #                     'kernel': ['linear', 'poly', 'rbf']}
+    # grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 3) 
     # grid.fit(X, Y)
+    # print(grid.best_params_)
     # svm_classifier = svm.SVC(**grid.best_params_, probability=True)
 
 
     print('Creating the classifier')
     # print(f'Best params: {grid.best_params_} Best score: {grid.best_score_}')
-    svm_classifier = svm.SVC(C=0.1, gamma=1, kernel='linear', probability=True)
+    svm_classifier = svm.SVC(C=1, gamma=0.1, kernel='linear', probability=True)
     svm_classifier.fit(X, Y)
     counts = dict()
     for i in training_data['labels']:
@@ -97,7 +100,7 @@ def classify():
             img = Image.open(file)
             file.seek(0)
             b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
-            feature_array = best_feature_extraction(img)
+            feature_array = best_feature_extraction(img, kmeans)
             normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
             top_x = classify_top_x(normalised_input, 5)
 
