@@ -122,11 +122,11 @@ if __name__ == '__main__':
     #     print('----------------------------------')
 
     # Mean and std experiment (no params)
-    svm_results = evaluate_svm(extract_mean_std)
-    with open('experiments/results/results_mean_std.txt', 'w') as f:
-        f.write(svm_results)
-    print(svm_results)
-    print('----------------------------------')
+    # svm_results = evaluate_svm(extract_mean_std)
+    # with open('experiments/results/results_mean_std.txt', 'w') as f:
+    #     f.write(svm_results)
+    # print(svm_results)
+    # print('----------------------------------')
 
     # LBP histogram experiments with different params
     lbp_param_sets = [
