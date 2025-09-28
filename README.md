@@ -21,13 +21,6 @@ Once the requirements are installed, use the following commands to launch the se
     cd server
     python app.py
 
-## Run as a service
-
-    sudo cp flower-classifier.service /lib/systemd/system/flower-classifier.service
-    sudo systemctl enable flower-classifier
-    sudo systemctl start flower-classifier
-    sudo systemctl status flower-classifier
-
 ## Run inside docker
 
 docker build -t flower-classifier .
