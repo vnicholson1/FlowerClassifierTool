@@ -7,13 +7,8 @@ import cv2
 from create_data_points import NUM_FEATURES, NUM_CLUSTERS
 
 
-def best_feature_extraction(pillow_image, kmeans):
-    """
-    Extract BoVW histogram for a single image using SIFT and a pre-trained KMeans vocabulary.
-    Pass a preloaded kmeans model for efficiency, or leave as None to load from disk.
-    """
-    # Convert PIL image to grayscale numpy array
-    img = np.array(pillow_image.convert('L'))
+def best_feature_extraction(image_array, kmeans):
+    img = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
     sift = cv2.SIFT_create(nfeatures=NUM_FEATURES)
     _, descriptors = sift.detectAndCompute(img, None)
     if descriptors is None:

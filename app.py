@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 
 
-from PIL import Image
+import cv2
 import base64
 import json
 import numpy as np
@@ -97,12 +97,12 @@ def classify():
     try:
         file = request.files['upload']
         if file and allowed_file(file.filename):
-            img = Image.open(file)
-            file.seek(0)
+            file_bytes = np.frombuffer(file.read(), np.uint8)
+            img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            file.seek(0)  # Reset file pointer if you need to read again later
             b64_encoded_upload = 'data:image/png;base64, ' + base64.b64encode(file.read()).decode('utf-8')
             feature_array = best_feature_extraction(img, kmeans)
-            normalised_input = (feature_array-np.min(feature_array))/(np.max(feature_array)-np.min(feature_array))
-            top_x = classify_top_x(normalised_input, 5)
+            top_x = classify_top_x(feature_array, 5)
 
             top_x_with_images = []
             for top in top_x:

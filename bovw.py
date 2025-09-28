@@ -159,6 +159,6 @@ def run_bovw(classifier, features):
 
 
 if __name__ == '__main__':
-    for feature in ['sift','kaze']:
-        for classifier in ['knn', 'svm', 'decision']:
+    for feature in ['sift']:
+        for classifier in ['svm']:
             run_bovw(classifier=classifier, features=feature)
