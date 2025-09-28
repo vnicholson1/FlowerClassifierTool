@@ -19,8 +19,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy the rest of your code
-COPY . .
+# Copy only Python files, the features and templates folder
+COPY *.py ./
+COPY templates ./templates/
+COPY data ./data/
+COPY bovw_kmeans.pkl ./
+COPY training_features.json ./
 
 # Expose Flask port
 EXPOSE 4000

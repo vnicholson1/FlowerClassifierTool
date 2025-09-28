@@ -31,5 +31,5 @@ Once the requirements are installed, use the following commands to launch the se
 ## Run inside docker
 
 docker build -t flower-classifier .
-docker run -p 4000:4000 flower-classifier
+docker run -d -p 4000:4000 flower-classifier
 
