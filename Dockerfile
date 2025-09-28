@@ -10,6 +10,7 @@ RUN apt-get update && \
         libsm6 \
         libxext6 \
         libxrender-dev \
+        gfortran \
         && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
