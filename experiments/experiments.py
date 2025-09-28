@@ -184,9 +184,9 @@ def run_experiments(config):
     for extractor_params in config['extractor_params_list']:
         for num_clusters in config['num_clusters_list']:
             for color_bins in config['color_bins_list']:
-                for classifier_type in config['classifier_types']:
+                for classifier in config['classifiers']:
                     for classifier_params in config['classifier_params_list']:
-                        print(f"\nTesting SIFT, params={extractor_params}, clusters={num_clusters}, color_bins={color_bins}, classifier={classifier_type}, clf_params={classifier_params}")
+                        print(f"\nTesting SIFT, params={extractor_params}, clusters={num_clusters}, color_bins={color_bins}, classifier={classifier}, clf_params={classifier_params}")
                         all_descriptors, train_descriptors_list = extract_features(train_image_paths, extractor_params=extractor_params)
                         if all_descriptors.size == 0:
                             print("No descriptors found in training set. Skipping.")
@@ -195,7 +195,7 @@ def run_experiments(config):
                         X_train = compute_bovw_histograms(train_descriptors_list, kmeans, num_clusters, image_paths=train_image_paths, use_color_histogram=config['use_color_histogram'], color_bins=color_bins)
                         _, test_descriptors_list = extract_features(test_image_paths, extractor_params=extractor_params)
                         X_test = compute_bovw_histograms(test_descriptors_list, kmeans, num_clusters, image_paths=test_image_paths, use_color_histogram=config['use_color_histogram'], color_bins=color_bins)
-                        y_pred = classify(X_train, X_test, y_train, classifier_type=classifier_type, classifier_params=classifier_params, grid_search_params=config.get('grid_search_params', None))
+                        y_pred = classify(X_train, X_test, y_train, classifier=classifier, classifier_params=classifier_params, grid_search_params=config.get('grid_search_params', None))
                         acc = accuracy_score(y_test, y_pred)
                         report = classification_report(y_test, y_pred, output_dict=True)
                         print(f"Accuracy: {acc:.4f}")
@@ -203,7 +203,7 @@ def run_experiments(config):
                             'extractor_params': extractor_params,
                             'num_clusters': num_clusters,
                             'color_bins': color_bins,
-                            'classifier_type': classifier_type,
+                            'classifier': classifier,
                             'classifier_params': classifier_params,
                             'accuracy': acc,
                             'classification_report': report
@@ -227,7 +227,7 @@ if __name__ == '__main__':
         ],
         'num_clusters_list': [32],
         'color_bins_list': [32],
-        'classifier_types': ['svm'],
+        'classifiers': ['svm'],
         'classifier_params_list': [
             {},  # default
         ],
