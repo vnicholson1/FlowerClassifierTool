@@ -1,142 +1,163 @@
-from feature_extraction import (
-    extract_rgb_histogram, to_tiny_image,
-    extract_grayscale_histogram, extract_mean_std, extract_lbp_histogram
-)
-from nearest_neighbour import NearestNeighbourClassifier
-from utils import pretty_confusion_matrix, get_image_paths
+"""
+bovw.py
+Bag of Visual Words (BoVW) implementation using ORB features and k-means clustering.
+This script extracts features from images, builds a visual vocabulary, and represents images as histograms of visual words.
+"""
+
+import os
+from typing import Literal
+import cv2
 import numpy as np
-from sklearn import svm
-from sklearn.model_selection import GridSearchCV 
+from sklearn.cluster import KMeans
+from tqdm import tqdm
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report, accuracy_score
+import json
+
+# Parameters
+TRAIN_PATH = 'data/train'  # Path to training images
+TEST_PATH = 'data/test'    # Path to test images
 
 
-def test_classifier(classifier, function, *params):
-    # Create the test set
-    class_name_and_paths = get_image_paths(folder_name='test')
-    class_names = list(class_name_and_paths.keys())
-    test_data = {}
-    for class_name, paths in class_name_and_paths.items():
-        test_data[class_name] = []
-        for path in paths:
-            image_array = function(path, *params)
-            test_data[class_name].append(image_array)
-
-    confusion_matrix = np.zeros((len(class_names), len(class_names))).tolist()
-    for class_name, list_of_image_features in test_data.items():
-        for image_features in list_of_image_features:
-            predicted = classifier.predict(image_features.reshape(1,-1))[0]
-            confusion_matrix[class_names.index(predicted.lower())][class_names.index(class_name.lower())] += 1
-    results = pretty_confusion_matrix(confusion_matrix, class_names)
-    return results
+def get_image_paths(dataset_path):
+    image_paths = []
+    labels = []
+    for class_name in os.listdir(dataset_path):
+        class_dir = os.path.join(dataset_path, class_name)
+        if not os.path.isdir(class_dir):
+            continue
+        for fname in os.listdir(class_dir):
+            if fname.lower().endswith(('.jpg', '.jpeg', '.png')):
+                image_paths.append(os.path.join(class_dir, fname))
+                labels.append(class_name)
+    return image_paths, labels
 
 
-def create_training_data(function, *params):
-    # Create feature set
-    class_name_and_paths = get_image_paths(folder_name='train')
-    training_data = {}
-    for class_name in sorted(class_name_and_paths.keys()):
-        paths = class_name_and_paths[class_name]
-        training_data[class_name] = []
-        for path in paths:
-            image_array = function(path, *params)
-            training_data[class_name].append(image_array)
-    return training_data
-    
+def extract_features(image_paths, nfeatures=500, features: Literal['orb', 'sift', 'brisk', 'akaze', 'kaze'] = 'orb'):
+    # Select feature extractor based on 'features' argument
+    if features == 'orb':
+        feature_extractor = cv2.ORB_create(nfeatures=nfeatures)
+    elif features == 'sift':
+        feature_extractor = cv2.SIFT_create(nfeatures=nfeatures)
+    elif features == 'brisk':
+        feature_extractor = cv2.BRISK_create()
+    elif features == 'akaze':
+        feature_extractor = cv2.AKAZE_create()
+    elif features == 'kaze':
+        feature_extractor = cv2.KAZE_create()
+    else:
+        raise ValueError(f"Unknown feature type: {features}")
 
-def evaluate_both(function, *params):
-    training_data = create_training_data(function, *params)
-    knn_results = evaluate_knn(function, training_data, *params)
-    print(knn_results)
-    svm_results = evaluate_svm(function, training_data, *params)
-    print(svm_results)
-    return knn_results, svm_results
-
-
-def evaluate_knn(function, training_data=None, *params):
-    if not training_data:
-        training_data = create_training_data(function, *params)
-
-    print('Created image feature set')
-
-    # Create the classifier
-    knn = NearestNeighbourClassifier(training_data, use_weighted=True)
-    print('Created classifier')
-    results = test_classifier(knn, function, *params)
-    results += f"\n\nBest K={knn.k} Weighted={knn.use_weighted_votes}"
-    return results
+    all_descriptors = []
+    descriptors_list = []
+    for path in tqdm(image_paths, desc=f'Extracting features ({features}, nfeatures={nfeatures})'):
+        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            descriptors_list.append(None)
+            continue
+        _, descriptors = feature_extractor.detectAndCompute(img, None)
+        if descriptors is not None:
+            all_descriptors.append(descriptors)
+        descriptors_list.append(descriptors)
+    if all_descriptors:
+        all_descriptors = np.vstack(all_descriptors)
+    else:
+        all_descriptors = np.array([])
+    return all_descriptors, descriptors_list
 
 
-def evaluate_svm(function, training_data=None, *params):
-    if not training_data:
-        training_data = create_training_data(function, *params)
-    print('Created image feature set')
-    x_list = []
-    y_list = []
-    for class_name, list_of_feats in training_data.items():
-        for feats in list_of_feats:
-            x_list.append(feats)
-            y_list.append(class_name)
-    X = np.vstack(x_list)
-    Y = np.asarray(y_list)
-    print('Convert to numpy arrays')
-    # tuning code
-    #best -  {'C': 0.1, 'gamma': 1, 'kernel': 'rbf'}
-    param_grid = {'C': [0.1, 1, 10],  
-              'gamma': [1, 0.1, 0.01, 0.001], 
-              'kernel': ['linear', 'poly', 'rbf']}
-    grid = GridSearchCV(svm.SVC(), param_grid, refit = True, verbose = 2) 
-    grid.fit(X, Y)
-    # tuning code end
-    svm_classifier = svm.SVC(**grid.best_params_)
-    svm_classifier.fit(X, Y)
-    print('Tuned classifier')
-    results = test_classifier(svm_classifier, function, *params)
-    results += f"\n\nC={grid.best_params_['C']}"
-    results += f"\ngamma={grid.best_params_['gamma']}"
-    results += f"\nkernel={grid.best_params_['kernel']}"
-    return results
+def build_vocabulary(descriptors, num_clusters):
+    print(f"Clustering {len(descriptors)} descriptors into {num_clusters} visual words...")
+    kmeans = KMeans(n_clusters=num_clusters, random_state=42, verbose=0)
+    kmeans.fit(descriptors)
+    return kmeans
 
-    
+
+def compute_bovw_histograms(descriptors_list, kmeans, num_clusters):
+    histograms = []
+    for descriptors in tqdm(descriptors_list, desc='Building histograms'):
+        if descriptors is None:
+            hist = np.zeros(num_clusters)
+        else:
+            words = kmeans.predict(descriptors)
+            hist, _ = np.histogram(words, bins=np.arange(num_clusters+1))
+        histograms.append(hist)
+    return np.array(histograms)
+
+
+def classify(X_train, X_test, y_train, classifier: Literal['svm', 'knn', 'decision']):
+
+    if classifier == 'svm':
+        param_grid = {'C': [0.1, 1, 10],  
+                        'gamma': [1, 0.1, 0.01, 0.001], 
+                        'kernel': ['linear', 'poly', 'rbf']}
+        grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=1)
+        grid.fit(X_train, y_train)
+        svm_classifier = SVC(**grid.best_params_)
+        svm_classifier.fit(X_train, y_train)
+        y_pred = svm_classifier.predict(X_test)
+    elif classifier == 'knn':
+        param_grid = {'n_neighbors': [3, 5, 7, 9, 11, 13, 15]}
+        grid = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, verbose=1)
+        grid.fit(X_train, y_train)
+        knn = KNeighborsClassifier(**grid.best_params_)
+        knn.fit(X_train, y_train)
+        y_pred = knn.predict(X_test)
+    elif classifier == 'decision':
+        param_grid = {'max_depth': [None, 10, 20, 30], 'min_samples_split': [2, 5, 10]}
+        grid = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, refit=True, verbose=1)
+        grid.fit(X_train, y_train)
+        dt = DecisionTreeClassifier(**grid.best_params_, random_state=42)
+        dt.fit(X_train, y_train)
+        y_pred = dt.predict(X_test)
+    else:
+        raise ValueError(f"Unknown classifier: {classifier}")
+    return y_pred
+
+
+def run_bovw(classifier, features):
+    cluster_options = [100]
+    nfeatures_options = [1000]
+    results = []
+    train_image_paths, train_labels = get_image_paths(TRAIN_PATH)
+    test_image_paths, test_labels = get_image_paths(TEST_PATH)
+    y_train = np.array(train_labels)
+    y_test = np.array(test_labels)
+
+    for num_clusters in cluster_options:
+        for nfeatures in nfeatures_options:
+            print(f"\nTesting NUM_CLUSTERS={num_clusters}, nfeatures={nfeatures}")
+            # Extract features
+            all_descriptors, train_descriptors_list = extract_features(train_image_paths, nfeatures=nfeatures, features=features)
+            if all_descriptors.size == 0:
+                print("No descriptors found in training set. Skipping.")
+                continue
+            kmeans = build_vocabulary(all_descriptors, num_clusters)
+            X_train = compute_bovw_histograms(train_descriptors_list, kmeans, num_clusters)
+            # Test features
+            _, test_descriptors_list = extract_features(test_image_paths, nfeatures=nfeatures, features=features)
+            X_test = compute_bovw_histograms(test_descriptors_list, kmeans, num_clusters)
+            y_pred = classify(X_train, X_test, y_train, classifier=classifier)
+            acc = accuracy_score(y_test, y_pred)
+            report = classification_report(y_test, y_pred, output_dict=True)
+            print(f"Accuracy: {acc:.4f}")
+            results.append({
+                'num_clusters': num_clusters,
+                'nfeatures': nfeatures,
+                'accuracy': acc,
+                'classification_report': report
+            })
+    # Save results to file
+    file_name = f'bovw_results_{classifier}_{features}.json'
+    with open(file_name, 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"All results saved to {file_name}")
+
 
 if __name__ == '__main__':
-    # # Color histogram experiments with different bin sizes
-    # for bins in [8, 16, 32]:
-    #     svm_results = evaluate_svm(lambda path: extract_rgb_histogram(path, bins=bins))
-    #     with open(f'results_color_hist_{bins}.txt', 'w') as f:
-    #         f.write(svm_results)
-    #     print(svm_results)
-    #     print('----------------------------------')
-    # # Tiny image experiments
-    # for tiny_image_size in [(4,4), (8, 8), (16, 16)]:
-    #     svm_results = evaluate_svm(to_tiny_image, None, tiny_image_size)
-    #     with open(f'results_tiny_image_{tiny_image_size[0]}_{tiny_image_size[1]}.txt', 'w') as f:
-    #         f.write(svm_results)
-    #     print(svm_results)
-    #     print('----------------------------------')
-
-    # Grayscale histogram experiments with different bin sizes
-    # for bins in [8, 16, 32]:
-    #     svm_results = evaluate_svm(lambda path: extract_grayscale_histogram(path, bins=bins))
-    #     with open(f'experiments/results/results_grayscale_hist_{bins}.txt', 'w') as f:
-    #         f.write(svm_results)
-    #     print(svm_results)
-    #     print('----------------------------------')
-
-    # Mean and std experiment (no params)
-    # svm_results = evaluate_svm(extract_mean_std)
-    # with open('experiments/results/results_mean_std.txt', 'w') as f:
-    #     f.write(svm_results)
-    # print(svm_results)
-    # print('----------------------------------')
-
-    # LBP histogram experiments with different params
-    lbp_param_sets = [
-        (8, 1, 10),
-        (16, 2, 18),
-        (24, 3, 26)
-    ]
-    for P, R, bins in lbp_param_sets:
-        svm_results = evaluate_svm(lambda path: extract_lbp_histogram(path, P=P, R=R, bins=bins))
-        with open(f'experiments/results/results_lbp_hist_{P}_{R}_{bins}.txt', 'w') as f:
-            f.write(svm_results)
-        print(svm_results)
-        print('----------------------------------')
+    for feature in ['sift']:
+        for classifier in ['svm']:
+            run_bovw(classifier=classifier, features=feature)
