@@ -114,20 +114,23 @@ def compute_bovw_histograms(descriptors_list, kmeans, num_clusters, image_paths=
 def classify(X_train, X_test, y_train, classifier: Literal['svm', 'knn', 'decision'], classifier_params=None, grid_search_params=None):
 
     if classifier == 'svm':
-        param_grid = {'C': [0.1, 1, 10],  
-                        'gamma': [1, 0.1, 0.01, 0.001], 
-                        'kernel': ['linear', 'poly', 'rbf']}
-        grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=1)
-        grid.fit(X_train, y_train)
-        print(f"Best params: {grid.best_params_} Best score: {grid.best_score_}")
-        svm_classifier = SVC(**grid.best_params_)
+        if grid_search_params:
+            param_grid = grid_search_params
+            grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=1)
+            grid.fit(X_train, y_train)
+            print(f"Best params: {grid.best_params_} Best score: {grid.best_score_}")
+            classifier_params = grid.best_params_
+        svm_classifier = SVC(classifier_params)
         svm_classifier.fit(X_train, y_train)
         y_pred = svm_classifier.predict(X_test)
     elif classifier == 'knn':
-        param_grid = {'n_neighbors': [3, 5, 7, 9, 11, 13, 15]}
-        grid = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, verbose=1)
-        grid.fit(X_train, y_train)
-        knn = KNeighborsClassifier(**grid.best_params_)
+        if grid_search_params:
+            param_grid = grid_search_params
+            grid = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, verbose=1)
+            grid.fit(X_train, y_train)
+            print(f"Best params: {grid.best_params_} Best score: {grid.best_score_}")
+            classifier_params = grid.best_params_
+        knn = KNeighborsClassifier(classifier_params)
         knn.fit(X_train, y_train)
         y_pred = knn.predict(X_test)
     else:
@@ -225,17 +228,17 @@ if __name__ == '__main__':
             # sigma - amount of Gaussian blur applied to the image before extracting features. Higher values mean more blur and potentially fewer features, while lower values preserve more detail but may introduce noise.
             {'nfeatures': 1000, 'nOctaveLayers': 3, 'contrastThreshold': 0.04, 'edgeThreshold': 10, 'sigma': 1.6},
         ],
-        'num_clusters_list': [32],
+        'num_clusters_list': [32],  # sqrt(numFeatures) is a good starting point
         'color_bins_list': [32],
         'classifiers': ['svm'],
         'classifier_params_list': [
             {},  # default
         ],
-        'use_color_histogram': True,
+        'use_color_histogram': False,
         'grid_search_params': {
             'C': [0.1, 1, 10],
             'gamma': [1, 0.1, 0.01, 0.001],
-            'kernel': ['linear', 'poly', 'rbf']
+            'kernel': ['linear', 'poly']  #, 'rbf']
         },
         'results_file': 'experiment_results.json'
     }
