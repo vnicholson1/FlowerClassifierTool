@@ -4,6 +4,7 @@ from PIL import Image
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 import tqdm
+import pickle
 
 def extract_color_histogram(img, bins=(8, 8, 8)):
     # Convert to RGB just in case
@@ -132,18 +133,30 @@ def main():
     test_dir = os.path.join('data', 'test')
 
     print(f"Loading training images from {train_dir}...")
-    X_train_imgs, y_train, class_names = load_images_from_folder(train_dir)
+    if os.path.exists(os.path.join('experiments', 'train_data.pkl')):
+        with open(os.path.join('experiments', 'train_data.pkl'), 'rb') as f:
+            X_train_imgs, y_train, class_names = pickle.load(f)
+    else:
+        X_train_imgs, y_train, class_names = load_images_from_folder(train_dir)
+        with open(os.path.join('experiments', 'train_data.pkl'), 'wb') as f:
+            pickle.dump((X_train_imgs, y_train, class_names), f)
     print(f"Loaded {len(X_train_imgs)} training images from {len(class_names)} classes.")
 
     print(f"Loading test images from {test_dir}...")
-    X_test_imgs, y_test, class_names = load_images_from_folder(test_dir)
+    if os.path.exists(os.path.join('experiments', 'test_data.pkl')):
+        with open(os.path.join('experiments', 'test_data.pkl'), 'rb') as f:
+            X_test_imgs, y_test, class_names = pickle.load(f)
+    else:
+        X_test_imgs, y_test, class_names = load_images_from_folder(test_dir)
+        with open(os.path.join('experiments', 'test_data.pkl'), 'wb') as f:
+            pickle.dump((X_test_imgs, y_test, class_names), f)
     print(f"Loaded {len(X_test_imgs)} test images from {len(class_names)} classes.")
 
     print(f"Extracting features using {args.method}...")
     X_train = extract_features(X_train_imgs, args.method)
     X_test = extract_features(X_test_imgs, args.method)
 
-    clf = KNeighborsClassifier(n_neighbors=args.k)
+    clf = KNeighborsClassifier(n_neighbors=args.k, p=3, weights='distance')
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
