@@ -6,6 +6,15 @@ from sklearn.metrics import accuracy_score
 import tqdm
 import pickle
 
+
+def extract_tiny_image(img, size=(8, 8)):
+    img = img.resize(size)
+    arr = np.array(img, dtype=np.float32).flatten()
+    arr = arr - np.mean(arr)
+    if np.linalg.norm(arr) > 0:
+        arr = arr / np.linalg.norm(arr)
+    return arr
+
 def extract_color_histogram(img, bins=(8, 8, 8)):
     # Convert to RGB just in case
     img = img.convert('RGB')
@@ -111,6 +120,8 @@ def extract_features(X, method):
     for img in tqdm.tqdm(X, desc="Extracting features"):
         if method == 'color':
             feat = extract_color_histogram(img)
+        elif method == 'tiny':
+            feat = extract_tiny_image(img)
         elif method == 'sobel':
             feat = extract_sobel_edges(img)
         elif method == 'lbp':
@@ -125,7 +136,7 @@ def extract_features(X, method):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Image feature extraction + kNN classification')
-    parser.add_argument('--method', type=str, choices=['color', 'sobel', 'lbp', 'hog'], default='color')
+    parser.add_argument('--method', type=str, choices=['tiny', 'color', 'sobel', 'lbp', 'hog'], default='color')
     parser.add_argument('--k', type=int, default=3, help='k for kNN')
     args = parser.parse_args()
 
@@ -156,7 +167,7 @@ def main():
     X_train = extract_features(X_train_imgs, args.method)
     X_test = extract_features(X_test_imgs, args.method)
 
-    clf = KNeighborsClassifier(n_neighbors=args.k, p=3, weights='distance')
+    clf = KNeighborsClassifier(n_neighbors=args.k, p=2, weights='distance')
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
