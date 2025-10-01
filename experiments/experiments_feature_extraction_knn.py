@@ -72,7 +72,7 @@ def extract_lbp(img):
     hist = hist / np.sum(hist)
     return hist
 
-def extract_hog(img, cell_size=8, bins=9):
+def extract_hog(img, cell_size=16, bins=8):
     img = img.convert('L')
     arr = np.array(img, dtype=np.float32)
     gx = np.zeros_like(arr)
@@ -128,6 +128,11 @@ def extract_features(X, method):
             feat = extract_lbp(img)
         elif method == 'hog':
             feat = extract_hog(img)
+        elif method == 'combo':
+            feat = np.concatenate([
+                extract_color_histogram(img),
+                extract_hog(img)
+            ])
         else:
             raise ValueError('Unknown method')
         features.append(feat)
@@ -136,7 +141,7 @@ def extract_features(X, method):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Image feature extraction + kNN classification')
-    parser.add_argument('--method', type=str, choices=['tiny', 'color', 'sobel', 'lbp', 'hog'], default='color')
+    parser.add_argument('--method', type=str, choices=['tiny', 'color', 'sobel', 'lbp', 'hog', 'combo'], default='color')
     parser.add_argument('--k', type=int, default=3, help='k for kNN')
     args = parser.parse_args()
 
@@ -167,11 +172,12 @@ def main():
     X_train = extract_features(X_train_imgs, args.method)
     X_test = extract_features(X_test_imgs, args.method)
 
-    clf = KNeighborsClassifier(n_neighbors=args.k, p=2, weights='distance')
+    clf = KNeighborsClassifier(n_neighbors=args.k, p=1, weights='distance')
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     print(f"Test accuracy: {acc:.4f}")
 
 if __name__ == '__main__':
+    # best - combo k=1, p=1, distance weights(not that makes any difference with k=1)
     main()
