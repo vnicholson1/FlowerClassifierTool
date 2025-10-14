@@ -2,7 +2,7 @@ import os
 import numpy as np
 from PIL import Image
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report, accuracy_score
 import tqdm
 import pickle
 
@@ -132,10 +132,6 @@ def extract_features(X, method):
         elif method == 'hog':
             feat = extract_hog(img)
         elif method == 'combo':
-            # feat = np.concatenate([
-            #     extract_color_histogram(img),
-            #     extract_hog(img)
-            # ])
             # Color
             color_feat = extract_color_histogram(img, bins=(8,8,8))
             # Texture
@@ -156,45 +152,32 @@ def main():
     parser.add_argument('--k', type=int, default=3, help='k for kNN')
     args = parser.parse_args()
 
-    # train_dir = os.path.join('data', 'train')
-    # test_dir = os.path.join('data', 'test')
+    train_dir = os.path.join('data', 'train')
+    test_dir = os.path.join('data', 'test')
 
-    # print(f"Loading training images from {train_dir}...")
-    # if os.path.exists(os.path.join('experiments', 'train_data.pkl')):
-    #     with open(os.path.join('experiments', 'train_data.pkl'), 'rb') as f:
-    #         X_train_imgs, y_train, class_names = pickle.load(f)
-    # else:
-    #     X_train_imgs, y_train, class_names = load_images_from_folder(train_dir)
-    #     with open(os.path.join('experiments', 'train_data.pkl'), 'wb') as f:
-    #         pickle.dump((X_train_imgs, y_train, class_names), f)
-    # print(f"Loaded {len(X_train_imgs)} training images from {len(class_names)} classes.")
+    print(f"Loading training images from {train_dir}...")
+    if os.path.exists(os.path.join('experiments', 'train_data.pkl')):
+        with open(os.path.join('experiments', 'train_data.pkl'), 'rb') as f:
+            X_train_imgs, y_train, class_names = pickle.load(f)
+    else:
+        X_train_imgs, y_train, class_names = load_images_from_folder(train_dir)
+        with open(os.path.join('experiments', 'train_data.pkl'), 'wb') as f:
+            pickle.dump((X_train_imgs, y_train, class_names), f)
+    print(f"Loaded {len(X_train_imgs)} training images from {len(class_names)} classes.")
 
-    # print(f"Loading test images from {test_dir}...")
-    # if os.path.exists(os.path.join('experiments', 'test_data.pkl')):
-    #     with open(os.path.join('experiments', 'test_data.pkl'), 'rb') as f:
-    #         X_test_imgs, y_test, class_names = pickle.load(f)
-    # else:
-    #     X_test_imgs, y_test, class_names = load_images_from_folder(test_dir)
-    #     with open(os.path.join('experiments', 'test_data.pkl'), 'wb') as f:
-    #         pickle.dump((X_test_imgs, y_test, class_names), f)
-    # print(f"Loaded {len(X_test_imgs)} test images from {len(class_names)} classes.")
+    print(f"Loading test images from {test_dir}...")
+    if os.path.exists(os.path.join('experiments', 'test_data.pkl')):
+        with open(os.path.join('experiments', 'test_data.pkl'), 'rb') as f:
+            X_test_imgs, y_test, class_names = pickle.load(f)
+    else:
+        X_test_imgs, y_test, class_names = load_images_from_folder(test_dir)
+        with open(os.path.join('experiments', 'test_data.pkl'), 'wb') as f:
+            pickle.dump((X_test_imgs, y_test, class_names), f)
+    print(f"Loaded {len(X_test_imgs)} test images from {len(class_names)} classes.")
 
-    # print(f"Extracting features using {args.method}...")
-    # X_train = extract_features(X_train_imgs, args.method)
-    # X_test = extract_features(X_test_imgs, args.method)
-
-    with open(os.path.join('experiments', 'train_feats.pkl'), 'rb') as f:
-        X_train, y_train, class_names = pickle.load(f)
-    with open(os.path.join('experiments', 'test_feats.pkl'), 'rb') as f:
-        X_test, y_test, _ = pickle.load(f)
-
-    # # Apply PCA to reduce dimensionality
-    # X_train_reduced, pca_basis = pca_transform(X_train, num_components=250)
-    # # Project test data using same PCA basis
-    # X_test_meaned = X_test - np.mean(X_train, axis=0)
-    # X_test_reduced = np.dot(X_test_meaned, pca_basis)
-    # X_train = X_train_reduced
-    # X_test = X_test_reduced
+    print(f"Extracting features using {args.method}...")
+    X_train = extract_features(X_train_imgs, args.method)
+    X_test = extract_features(X_test_imgs, args.method)
 
     clf = KNeighborsClassifier(n_neighbors=args.k, weights='distance', metric='manhattan')
     clf.fit(X_train, y_train)
@@ -202,11 +185,9 @@ def main():
     acc = accuracy_score(y_test, y_pred)
     print(f"Test accuracy: {acc:.4f}")
 
-    from sklearn.metrics import classification_report
-
     print(classification_report(y_test, y_pred, digits=3))
 
 
 if __name__ == '__main__':
-    # best - combo k=1, p=1, distance weights(not that makes any difference with k=1)
+    # best - combo k=3, p=1, distance weighted
     main()
