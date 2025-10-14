@@ -8,15 +8,6 @@ import pickle
 
 # Feature extraction methods
 # Colour features
-
-def extract_tiny_image(img, size=(8, 8)):
-    img = img.resize(size)
-    arr = np.array(img, dtype=np.float32).flatten()
-    arr = arr - np.mean(arr)
-    if np.linalg.norm(arr) > 0:
-        arr = arr / np.linalg.norm(arr)
-    return arr
-
 def extract_color_histogram(img, bins=(8, 8, 8)):
     # Convert to RGB just in case
     img = img.convert('RGB')
@@ -29,8 +20,6 @@ def extract_color_histogram(img, bins=(8, 8, 8)):
     return hist
 
 # Texture features
-
-# 11% with k = 5
 def extract_lbp(img, bins=16):
     img = img.convert('L')
     arr = np.array(img, dtype=np.uint8)
@@ -53,6 +42,7 @@ def extract_lbp(img, bins=16):
     hist = hist / np.sum(hist)
     return hist
 
+# Shape/edges
 def extract_hog(img, cell_size=16, bins=8):
     img = img.convert('L')
     arr = np.array(img, dtype=np.float32)
@@ -78,29 +68,6 @@ def extract_hog(img, cell_size=16, bins=8):
     return hog
 
 
-def pca_transform(X, num_components):
-    # 1. Mean center
-    X_meaned = X - np.mean(X, axis=0)
-    
-    # 2. Covariance matrix
-    cov_matrix = np.cov(X_meaned, rowvar=False)
-    
-    # 3. Eigen decomposition
-    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
-    
-    # 4. Sort eigenvectors by largest eigenvalues
-    sorted_idx = np.argsort(eigenvalues)[::-1]
-    eigenvectors = eigenvectors[:, sorted_idx]
-    
-    # 5. Select top k
-    eigenvectors = eigenvectors[:, :num_components]
-    
-    # 6. Project data
-    X_reduced = np.dot(X_meaned, eigenvectors)
-    
-    return X_reduced, eigenvectors
-
-
 def load_images_from_folder(folder, size=(64, 64)):
     X, y = [], []
     class_names = sorted(os.listdir(folder))
@@ -120,35 +87,23 @@ def load_images_from_folder(folder, size=(64, 64)):
                 print(f"Error loading {path}: {e}")
     return X, y, class_names
 
-def extract_features(X, method):
+def extract_features(X):
     features = []
     for img in tqdm.tqdm(X, desc="Extracting features"):
-        if method == 'color':
-            feat = extract_color_histogram(img)
-        elif method == 'tiny':
-            feat = extract_tiny_image(img)
-        elif method == 'lbp':
-            feat = extract_lbp(img)
-        elif method == 'hog':
-            feat = extract_hog(img)
-        elif method == 'combo':
-            # Color
-            color_feat = extract_color_histogram(img, bins=(8,8,8))
-            # Texture
-            lbp_feat = extract_lbp(img, bins=256)
-            # Shape/edges
-            hog_feat = extract_hog(img, cell_size=16, bins=8)
-            # Concatenate all
-            feat = np.concatenate([color_feat, hog_feat, lbp_feat])
-        else:
-            raise ValueError('Unknown method')
+        # Color
+        color_feat = extract_color_histogram(img, bins=(8,8,8))
+        # Texture
+        lbp_feat = extract_lbp(img, bins=256)
+        # Shape/edges
+        hog_feat = extract_hog(img, cell_size=16, bins=8)
+        # Concatenate all
+        feat = np.concatenate([color_feat, hog_feat, lbp_feat])
         features.append(feat)
     return np.array(features)
 
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Image feature extraction + kNN classification')
-    parser.add_argument('--method', type=str, default='combo')
     parser.add_argument('--k', type=int, default=3, help='k for kNN')
     args = parser.parse_args()
 
