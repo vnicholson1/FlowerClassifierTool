@@ -68,6 +68,41 @@ def extract_hog(img, cell_size=16, bins=8):
     return hog
 
 
+def _extract_features(img):
+    # Color
+    color_feat = extract_color_histogram(img, bins=(8,8,8))
+    # Texture
+    lbp_feat = extract_lbp(img, bins=256)
+    # Shape/edges
+    hog_feat = extract_hog(img, cell_size=16, bins=8)
+    # Concatenate all
+    feat = np.concatenate([color_feat, hog_feat, lbp_feat])
+    return feat
+
+
+# Noise removal methods
+def center_crop(img, crop_ratio=0.8, jitter=0.05):
+    w, h = img.size
+    new_w = int(w * crop_ratio)
+    new_h = int(h * crop_ratio)
+    dw = int(w * jitter)
+    dh = int(h * jitter)
+    left = np.random.randint((w - new_w)//2 - dw, (w - new_w)//2 + dw + 1)
+    top = np.random.randint((h - new_h)//2 - dh, (h - new_h)//2 + dh + 1)
+    right = left + new_w
+    bottom = top + new_h
+    return img.crop((left, top, right, bottom))
+
+
+def extract_features(X):
+    features = []
+    for img in tqdm.tqdm(X, desc="Extracting features"):
+        img_cleaned = center_crop(img, crop_ratio=0.8, jitter=0)
+        feat = _extract_features(img_cleaned)
+        features.append(feat)
+    return np.array(features)
+
+
 def load_images_from_folder(folder, size=(64, 64)):
     X, y = [], []
     class_names = sorted(os.listdir(folder))
@@ -87,19 +122,6 @@ def load_images_from_folder(folder, size=(64, 64)):
                 print(f"Error loading {path}: {e}")
     return X, y, class_names
 
-def extract_features(X):
-    features = []
-    for img in tqdm.tqdm(X, desc="Extracting features"):
-        # Color
-        color_feat = extract_color_histogram(img, bins=(8,8,8))
-        # Texture
-        lbp_feat = extract_lbp(img, bins=256)
-        # Shape/edges
-        hog_feat = extract_hog(img, cell_size=16, bins=8)
-        # Concatenate all
-        feat = np.concatenate([color_feat, hog_feat, lbp_feat])
-        features.append(feat)
-    return np.array(features)
 
 def main():
     import argparse
@@ -130,9 +152,9 @@ def main():
             pickle.dump((X_test_imgs, y_test, class_names), f)
     print(f"Loaded {len(X_test_imgs)} test images from {len(class_names)} classes.")
 
-    print(f"Extracting features using {args.method}...")
-    X_train = extract_features(X_train_imgs, args.method)
-    X_test = extract_features(X_test_imgs, args.method)
+    print(f"Extracting features ...")
+    X_train = extract_features(X_train_imgs)
+    X_test = extract_features(X_test_imgs)
 
     clf = KNeighborsClassifier(n_neighbors=args.k, weights='distance', metric='manhattan')
     clf.fit(X_train, y_train)
