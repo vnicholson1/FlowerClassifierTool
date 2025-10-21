@@ -2,4 +2,4 @@ flask
 numpy
 pillow
 # TensorFlow 2.20 CPU version compatible with ARM
-tensorflow-cpu==2.20.0
+tensorflow_cpu==2.20.0
