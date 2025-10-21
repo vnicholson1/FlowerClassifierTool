@@ -9,9 +9,15 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    libtiff-dev \
+    libwebp-dev \
+    libopenjp2-7-dev \
+    libatlas-base-dev \
     libblas-dev \
     liblapack-dev \
-    libjpeg-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements.txt first
