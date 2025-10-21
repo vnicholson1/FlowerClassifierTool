@@ -4,14 +4,15 @@ from keras import layers, models
 import matplotlib.pyplot as plt
 import os
 
-# ⚡ Toggle: Use transfer learning or custom CNN
-USE_TRANSFER_LEARNING = True  # Set to False to use your custom CNN
+# ⚙️ CONFIG
+FINE_TUNE = True          # ← enable this to fine-tune MobileNetV2
+FINE_TUNE_AT = 100        # ← unfreeze layers from this index upward
 
-# 1️⃣ Set dataset paths
+# 1️⃣ Dataset paths
 data_dir = os.path.join("data", "train")
 
-# 2️⃣ Create training and validation datasets
-img_size = (224, 224) if USE_TRANSFER_LEARNING else (180, 180)
+# 2️⃣ Dataset loading
+img_size = (224, 224)
 batch_size = 32
 
 train_ds = keras.utils.image_dataset_from_directory(
@@ -22,7 +23,6 @@ train_ds = keras.utils.image_dataset_from_directory(
     image_size=img_size,
     batch_size=batch_size
 )
-
 val_ds = keras.utils.image_dataset_from_directory(
     data_dir,
     validation_split=0.2,
@@ -31,83 +31,68 @@ val_ds = keras.utils.image_dataset_from_directory(
     image_size=img_size,
     batch_size=batch_size
 )
-
 num_classes = len(train_ds.class_names)
-print(f"✅ Found {num_classes} flower classes.")
+print(f"✅ Found {num_classes} classes.")
 
-# 3️⃣ Prefetch and normalize data
+# 3️⃣ Prefetch + normalize
 AUTOTUNE = tf.data.AUTOTUNE
-train_ds = train_ds.map(lambda x, y: (x / 255.0, y)).cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-val_ds = val_ds.map(lambda x, y: (x / 255.0, y)).cache().prefetch(buffer_size=AUTOTUNE)
+train_ds = train_ds.map(lambda x, y: (x / 255.0, y)).cache().shuffle(1000).prefetch(AUTOTUNE)
+val_ds = val_ds.map(lambda x, y: (x / 255.0, y)).cache().prefetch(AUTOTUNE)
 
-# 4️⃣ Define model
-if USE_TRANSFER_LEARNING:
-    print("⚡ Using MobileNetV2 Transfer Learning")
+# 4️⃣ Model
+print("⚡ Using MobileNetV2 backbone")
 
-    # Load pre-trained MobileNetV2 without top layers
-    base_model = tf.keras.applications.MobileNetV2(
-        input_shape=img_size + (3,),
-        include_top=False,
-        weights='imagenet'
-    )
-    base_model.trainable = False  # freeze backbone
+base_model = tf.keras.applications.MobileNetV2(
+    input_shape=img_size + (3,),
+    include_top=False,
+    weights='imagenet'
+)
+base_model.trainable = False  # freeze initially
 
-    # Add classification head
-    model = models.Sequential([
-        base_model,
-        layers.GlobalAveragePooling2D(),
-        layers.Dropout(0.3),
-        layers.Dense(512, activation='relu'),
-        layers.Dropout(0.3),
-        layers.Dense(num_classes, activation='softmax')
-    ])
-else:
-    print("⚡ Using Custom CNN")
-    model = models.Sequential([
-        layers.Conv2D(32, (3,3), activation='relu', input_shape=img_size + (3,)),
-        layers.MaxPooling2D(),
-        layers.Conv2D(64, (3,3), activation='relu'),
-        layers.MaxPooling2D(),
-        layers.Conv2D(128, (3,3), activation='relu'),
-        layers.MaxPooling2D(),
-        layers.Dropout(0.3),
-        layers.Flatten(),
-        layers.Dense(256, activation='relu'),
-        layers.Dropout(0.3),
-        layers.Dense(num_classes, activation='softmax')
-    ])
+model = models.Sequential([
+    base_model,
+    layers.GlobalAveragePooling2D(),
+    layers.Dropout(0.3),
+    layers.Dense(512, activation='relu'),
+    layers.Dropout(0.3),
+    layers.Dense(num_classes, activation='softmax')
+])
 
-# 5️⃣ Compile model
+# 5️⃣ Compile
 model.compile(
     optimizer='adam',
     loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
 
-# 6️⃣ Train model
-epochs = 10 if USE_TRANSFER_LEARNING else 20
-history = model.fit(
-    train_ds,
-    validation_data=val_ds,
-    epochs=epochs
-)
+# 6️⃣ Train (phase 1 — frozen)
+epochs = 10
+print(f"🚀 Starting training for {epochs} epochs (frozen)...")
+history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
 
-# 7️⃣ Plot training history
-plt.figure(figsize=(10, 4))
-plt.subplot(1, 2, 1)
-plt.plot(history.history['accuracy'], label='Train Acc')
-plt.plot(history.history['val_accuracy'], label='Val Acc')
-plt.legend()
-plt.title('Accuracy')
+# 7️⃣ Optional fine-tuning
+if FINE_TUNE:
+    print("\n🎯 Fine-tuning MobileNetV2 from layer", FINE_TUNE_AT)
 
-plt.subplot(1, 2, 2)
-plt.plot(history.history['loss'], label='Train Loss')
-plt.plot(history.history['val_loss'], label='Val Loss')
-plt.legend()
-plt.title('Loss')
-plt.show()
+    base_model.trainable = True
+    for layer in base_model.layers[:FINE_TUNE_AT]:
+        layer.trainable = False
 
-# 8️⃣ Save model
-filename = "flower_classifier_transfer.keras" if USE_TRANSFER_LEARNING else "flower_classifier_108.keras"
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    fine_tune_epochs = 5
+    total_epochs = epochs + fine_tune_epochs
+    print(f"🚀 Continuing training for {fine_tune_epochs} fine-tuning epochs...")
+    history_fine = model.fit(train_ds, validation_data=val_ds,
+                             epochs=total_epochs, initial_epoch=history.epoch[-1])
+
+# 9️⃣ Save
+filename = "flower_classifier_transfer_ft.keras" if FINE_TUNE else \
+           "flower_classifier_transfer.keras"
+
 model.save(filename)
 print(f"✅ Model saved as {filename}")

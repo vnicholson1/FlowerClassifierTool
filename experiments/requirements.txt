@@ -5,4 +5,4 @@ scikit-learn==1.7.2
 tqdm==4.67.1
 
 tensorflow
-matplotlib
+seaborn
