@@ -90,8 +90,8 @@ if FINE_TUNE:
                              epochs=total_epochs, initial_epoch=history.epoch[-1])
 
 # 9️⃣ Save
-filename = "flower_classifier_transfer_ft.keras" if FINE_TUNE else \
-           "flower_classifier_transfer.keras"
+filename = "experiments/cnn/flower_classifier_transfer_ft.keras" if FINE_TUNE else \
+           "experiments/cnn/flower_classifier_transfer.keras"
 
 model.save(filename)
 print(f"✅ Model saved as {filename}")

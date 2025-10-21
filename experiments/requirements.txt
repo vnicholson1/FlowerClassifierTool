@@ -1,8 +1,0 @@
-# k-NN experimentation requirements
-numpy==2.2.6
-pillow==11.3.0
-scikit-learn==1.7.2
-tqdm==4.67.1
-
-tensorflow
-seaborn

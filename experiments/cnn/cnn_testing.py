@@ -5,7 +5,7 @@ from sklearn.metrics import classification_report
 import keras
 
 # ⚙️ CONFIG
-MODEL_PATH = "flower_classifier_transfer_ft.keras"  # or "flower_classifier_108.keras"
+MODEL_PATH = "experiments/cnn/flower_classifier_transfer_ft.keras"  # or "flower_classifier_108.keras"
 DATA_DIR = os.path.join("data", "train")  # used to recover class names
 TEST_DIR = os.path.join("data", "test")
 IMG_SIZE = (224, 224)  # 224 for MobileNetV2
