@@ -1,7 +1,6 @@
 import tensorflow as tf
 import keras
 from keras import layers, models
-import matplotlib.pyplot as plt
 import os
 
 # ⚙️ CONFIG

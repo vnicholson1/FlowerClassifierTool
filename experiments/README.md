@@ -14,3 +14,5 @@ k=3, Accuracy = 44.5%, distance method = manhattan, scoring = weighted
 
 ## CNN Results:
 
+flower_classifier_transfer.keras - 84.13% accuracy
+flower_classifier_transfer_tf.keras - 86.37% accuracy
