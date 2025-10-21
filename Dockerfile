@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libtiff-dev \
     libwebp-dev \
     libopenjp2-7-dev \
-    libatlas-base-dev \
     libblas-dev \
     liblapack-dev \
     && rm -rf /var/lib/apt/lists/*
