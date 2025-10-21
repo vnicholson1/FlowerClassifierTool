@@ -26,7 +26,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app code
-COPY . .
+COPY ./data ./data
+COPY ./app.py .
+COPY ./templates ./templates
 
 # Expose Flask port
 EXPOSE 4000

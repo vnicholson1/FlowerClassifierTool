@@ -2,7 +2,7 @@
 
 Data has come from - https://www.robots.ox.ac.uk/~vgg/data/flowers/102/ provided by the Oxford University.
 
-A simple tool using kNN and tiny images for flower classifiction to evaluate their effectiveness.
+A simple tool using a trained CNN to classify pictures of flowers.
 
 # Updating training data
 
@@ -21,7 +21,7 @@ Once the requirements are installed, use the following commands to launch the se
     cd server
     python app.py
 
-## Run inside docker
+## Run inside docker (recommended)
 
 docker build -t flower-classifier .
 docker run -d -p 4000:4000 flower-classifier
