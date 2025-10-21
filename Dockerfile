@@ -1,34 +1,29 @@
-# Use official Python image
-FROM python:3.10-slim
+# Use Python 3.11 slim for ARM (Debian-based)
+FROM --platform=linux/arm/v7 python:3.11-slim
 
-# Install system dependencies for OpenCV and SIFT
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libgl1 \
-        libglib2.0-0t64 \
-        libsm6 \
-        libxext6 \
-        libxrender-dev \
-        gfortran \
-        && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libatlas-base-dev \
+    libjpeg-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy only Python files, the features and templates folder
-COPY *.py ./
-COPY templates ./templates/
-COPY data ./data/
-COPY bovw_kmeans.pkl ./
-COPY training_features.json ./
+# Copy requirements.txt first
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy app code
+COPY . .
 
 # Expose Flask port
 EXPOSE 4000
 
 # Run the Flask app
-CMD ["python", "app.py"]
+CMD ["python3", "app.py"]
