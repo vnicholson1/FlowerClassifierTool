@@ -15,7 +15,7 @@ converter.optimizations = [tf.lite.Optimize.DEFAULT]
 tflite_model = converter.convert()
 
 # Save
-with open("lower_classifier_transfer_ft.tflite", "wb") as f:
+with open("flower_classifier_transfer_ft.tflite", "wb") as f:
     f.write(tflite_model)
 
 print("✅ TFLite model saved as flower_classifier_transfer_ft.tflite")

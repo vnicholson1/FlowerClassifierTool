@@ -1,5 +1,4 @@
 numpy
 Flask
-scikit-learn
-tqdm
-opencv-python
+pillow
+tensorflow-cpu
