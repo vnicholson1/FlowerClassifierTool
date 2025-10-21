@@ -7,9 +7,9 @@ model = keras.models.load_model("experiments/cnn/flower_classifier_transfer_ft.k
 
 # Convert to TensorFlow Lite
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
-
-# Optional: enable optimization for smaller size (slightly slower but great for mobile)
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
+converter.target_spec.supported_ops = [
+    tf.lite.OpsSet.TFLITE_BUILTINS
+]
 
 # Convert
 tflite_model = converter.convert()
