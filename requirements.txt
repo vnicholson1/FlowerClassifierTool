@@ -1,5 +1,4 @@
 flask==3.1.2
-numpy==1.26.4
 pillow==11.3.0
 tflite-runtime==2.14.0  # not supported on ubuntu, use tensorflow-cpu instead
 # tensorflow-cpu==2.20.0  # use this instead if running on ubuntu
