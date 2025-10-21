@@ -7,7 +7,11 @@ from pathlib import Path
 import base64
 import numpy as np
 from PIL import Image
-import tensorflow as tf
+
+# Use tensorflow if running from ubuntu, otherwise use tflite-runtime on raspbian
+# from tensorflow import lite as tflite
+import tflite_runtime.interpreter as tflite
+
 
 app = Flask(__name__)
 
@@ -19,7 +23,7 @@ LABELS_PATH = "flower_labels.txt"
 IMG_SIZE = (224, 224)  # must match training input
 
 print("Loading TFLite model...")
-interpreter = tf.lite.Interpreter(model_path=MODEL_PATH, num_threads=2)
+interpreter = tflite.Interpreter(model_path=MODEL_PATH, num_threads=2)
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
