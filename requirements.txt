@@ -1,4 +1,4 @@
 flask
 numpy
 pillow
-tflite-runtime
+tflite-runtime  # not supported on ubuntu, use tensorflow-cpu instead
